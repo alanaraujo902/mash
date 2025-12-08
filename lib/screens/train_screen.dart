@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
 import '../providers/workout_timer_provider.dart';
+import '../providers/theme_provider.dart';
 import '../database/database.dart';
+import '../widgets/neon_card.dart';
+import '../utils/app_colors.dart';
 import 'active_workout_screen.dart';
 
 class TrainScreen extends StatelessWidget {
@@ -83,9 +86,10 @@ class TrainScreen extends StatelessWidget {
             )
         ],
       ),
-      body: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(
-        builder: (context, trainingProvider, muscleProvider, _) {
+      body: Consumer3<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider>(
+        builder: (context, trainingProvider, muscleProvider, themeProvider, _) {
           final sessions = trainingProvider.trainingSessions;
+          final isNeon = themeProvider.isNeon;
 
           if (sessions.isEmpty) {
             return Center(
@@ -105,6 +109,7 @@ class TrainScreen extends StatelessWidget {
                 session: session,
                 trainingProvider: trainingProvider,
                 muscleProvider: muscleProvider,
+                isNeon: isNeon,
               );
             },
           );
@@ -118,11 +123,13 @@ class _TrainingSessionCard extends StatefulWidget {
   final TrainingSession session;
   final TrainingSessionProvider trainingProvider;
   final MuscleGroupProvider muscleProvider;
+  final bool isNeon;
 
   const _TrainingSessionCard({
     required this.session,
     required this.trainingProvider,
     required this.muscleProvider,
+    required this.isNeon,
   });
 
   @override
@@ -152,16 +159,25 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return NeonCard(
+      isNeon: widget.isNeon,
       margin: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           ListTile(
             title: Text(
               widget.session.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: widget.isNeon ? AppColors.neonGreen : null,
+              ),
             ),
-            trailing: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+            trailing: Icon(
+              _isExpanded ? Icons.expand_less : Icons.expand_more,
+              color: widget.isNeon ? AppColors.neonPurple : null,
+            ),
             onTap: () {
               setState(() {
                 _isExpanded = !_isExpanded;
@@ -171,16 +187,26 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
           ),
           if (_isExpanded)
             if (_groups.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('Nenhum grupo muscular configurado.'),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Nenhum grupo muscular configurado.',
+                  style: TextStyle(
+                    color: widget.isNeon ? AppColors.neonGreen : null,
+                  ),
+                ),
               )
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _groups.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  color: widget.isNeon
+                      ? AppColors.neonPurple.withOpacity(0.3)
+                      : null,
+                ),
                 itemBuilder: (context, index) {
                   final smg = _groups[index];
                   // Encontra o nome do grupo muscular
@@ -198,15 +224,20 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor:
-                          widget.muscleProvider.getColorFromHex(muscleGroup.color),
+                      backgroundColor: widget.muscleProvider
+                          .getColorFromHex(muscleGroup.color),
                       child: const Icon(
                         Icons.fitness_center,
                         color: Colors.white,
                         size: 20,
                       ),
                     ),
-                    title: Text(muscleGroup.name),
+                    title: Text(
+                      muscleGroup.name,
+                      style: TextStyle(
+                        color: widget.isNeon ? AppColors.neonGreen : null,
+                      ),
+                    ),
                     trailing: ElevatedButton.icon(
                       onPressed: () {
                         // Navega para a tela de execução do treino
@@ -224,7 +255,9 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Play'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: widget.isNeon
+                            ? AppColors.neonPurple
+                            : Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
                       ),
                     ),

@@ -4,6 +4,9 @@ import '../database/database.dart';
 import '../providers/exercise_provider.dart';
 import '../providers/recovery_provider.dart';
 import '../providers/workout_timer_provider.dart';
+import '../providers/theme_provider.dart';
+import '../widgets/neon_card.dart';
+import '../utils/app_colors.dart';
 import 'home_screen.dart';
 import 'dart:async';
 
@@ -175,6 +178,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   Widget build(BuildContext context) {
     // Consumir o timer global
     final globalTime = context.watch<WorkoutTimerProvider>().formattedTotalTime;
+    final isNeon = context.watch<ThemeProvider>().isNeon;
 
     return Scaffold(
       appBar: AppBar(
@@ -196,14 +200,31 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           // --- BARRA DE TIMERS ---
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              border: Border(
-                bottom: BorderSide(
-                  color: Colors.grey.withOpacity(0.2),
-                ),
-              ),
-            ),
+            decoration: isNeon
+                ? BoxDecoration(
+                    color: AppColors.neonCard,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppColors.neonPurple,
+                        width: 2,
+                      ),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.neonPurple.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  )
+                : BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey.withOpacity(0.2),
+                      ),
+                    ),
+                  ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -224,7 +245,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        color: isNeon
+                            ? AppColors.neonGreen
+                            : Theme.of(context).colorScheme.onPrimaryContainer,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -253,7 +276,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
+                        color: isNeon
+                            ? AppColors.neonPurple
+                            : Theme.of(context).primaryColor,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -277,6 +302,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                             exercise: _exercises[index],
                             onCheckCompletion:
                                 _checkOverallCompletion, // Passando o callback
+                            isNeon: isNeon,
                           );
                         },
                       ),
@@ -373,11 +399,13 @@ class _RestTimerDialogState extends State<RestTimerDialog> {
 class _ExerciseItem extends StatefulWidget {
   final Exercise exercise;
   final VoidCallback onCheckCompletion; // NOVO CALLBACK
+  final bool isNeon;
 
   const _ExerciseItem({
     Key? key,
     required this.exercise,
     required this.onCheckCompletion, // NOVO
+    required this.isNeon,
   }) : super(key: key);
 
   @override
@@ -424,19 +452,27 @@ class _ExerciseItemState extends State<_ExerciseItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return NeonCard(
+      isNeon: widget.isNeon,
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
             title: Text(
               widget.exercise.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: widget.isNeon ? AppColors.neonGreen : null,
+              ),
             ),
             trailing: IconButton(
-              icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+              icon: Icon(
+                _isExpanded ? Icons.expand_less : Icons.expand_more,
+                color: widget.isNeon ? AppColors.neonPurple : null,
+              ),
               onPressed: () => setState(() => _isExpanded = !_isExpanded),
             ),
           ),

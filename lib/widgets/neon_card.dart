@@ -31,38 +31,54 @@ class NeonCard extends StatelessWidget {
       );
     }
 
-    // Estilo Neon com borda gradiente
+    // Estilo Neon com borda sólida gradiente de 2px + sombra
     return Container(
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        gradient: const LinearGradient(
-          colors: [AppColors.neonPurple, AppColors.neonGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
         boxShadow: [
+          // Sombra neon roxa (topo esquerdo)
           BoxShadow(
-            color: AppColors.neonPurple.withOpacity(0.4),
+            color: AppColors.neonPurple.withOpacity(0.5),
             blurRadius: 15,
             offset: const Offset(-4, -4),
+            spreadRadius: 1,
           ),
+          // Sombra neon verde (baixo direito)
           BoxShadow(
-            color: AppColors.neonGreen.withOpacity(0.4),
+            color: AppColors.neonGreen.withOpacity(0.5),
             blurRadius: 15,
             offset: const Offset(4, 4),
+            spreadRadius: 1,
+          ),
+          // Sombra geral para profundidade
+          BoxShadow(
+            color: AppColors.neonPurple.withOpacity(0.2),
+            blurRadius: 20,
+            spreadRadius: 2,
           ),
         ],
       ),
       child: Container(
-        padding: EdgeInsets.all(1.5), // Espessura da borda
         decoration: BoxDecoration(
-          color: AppColors.neonCard,
-          borderRadius: BorderRadius.circular(borderRadius - 1.5),
+          borderRadius: BorderRadius.circular(borderRadius),
+          // Borda gradiente roxo→verde alinhada com o glow (2px)
+          gradient: const LinearGradient(
+            colors: [AppColors.neonPurple, AppColors.neonGreen],
+            begin: Alignment.topLeft, // Alinhado com sombra roxa
+            end: Alignment.bottomRight, // Alinhado com sombra verde
+          ),
         ),
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(16),
-          child: child,
+        child: Container(
+          padding: const EdgeInsets.all(2), // Linha sólida de 2 pixels
+          decoration: BoxDecoration(
+            color: AppColors.neonCard,
+            borderRadius: BorderRadius.circular(borderRadius - 2),
+          ),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(16),
+            child: child,
+          ),
         ),
       ),
     );
