@@ -70,7 +70,7 @@ class NeonCard extends StatelessWidget {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(2), // Linha sólida de 2 pixels
+          padding: const EdgeInsets.all(2), // Linha sólida de 2 pixels (cria a borda)
           decoration: BoxDecoration(
             color: AppColors.neonCard,
             borderRadius: BorderRadius.circular(borderRadius - 2),
