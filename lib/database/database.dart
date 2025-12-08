@@ -89,6 +89,8 @@ class WorkoutHistories extends Table {
   TextColumn get exerciseId => text().references(Exercises, #id, onDelete: KeyAction.cascade)();
   IntColumn get completedSeries => integer()();
   RealColumn get maxWeightKg => real().nullable()();
+  // Armazena a soma de (Reps * Carga) de todas as séries
+  RealColumn get totalVolumeLoad => real().withDefault(const Constant(0.0))();
   DateTimeColumn get completedAt => dateTime().withDefault(currentDateAndTime)();
   
   @override
@@ -121,7 +123,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'muscle_app_db');
@@ -276,8 +278,8 @@ class AppDatabase extends _$AppDatabase {
     }).toList();
   }
 
-  // 2. Volume de Séries por Grupo Muscular
-  // Retorna o total de séries feitas para aquele grupo agrupado por dia
+  // 2. Volume Load (Carga Total) por Grupo Muscular
+  // Retorna o Volume Load (Reps * Kg * Séries) agrupado por dia
   Future<List<Map<String, dynamic>>> getMuscleGroupVolumeEvolution(String muscleGroupId) async {
     // Precisamos fazer JOIN: History -> WorkoutSession -> SessionMuscleGroup
     // Para filtrar pelo muscleGroupId
@@ -298,19 +300,23 @@ class AppDatabase extends _$AppDatabase {
     final rows = await query.get();
 
     // Agrupamento manual por dia (Drift simple query)
-    final Map<String, int> dailyVolume = {}; // Key: "YYYY-MM-DD", Value: Total Series
+    final Map<String, double> dailyVolumeLoad = {}; // Key: "YYYY-MM-DD", Value: Total Volume Load
 
     for (var row in rows) {
       final history = row.readTable(workoutHistories);
       final dateKey =
           "${history.completedAt.year}-${history.completedAt.month}-${history.completedAt.day}";
 
-      dailyVolume[dateKey] = (dailyVolume[dateKey] ?? 0) + history.completedSeries;
+      // SOMA O VOLUME LOAD (Em vez de somar 1 série)
+      // Se for um registro antigo sem volume calculado, usamos 0.0
+      final volume = history.totalVolumeLoad;
+
+      dailyVolumeLoad[dateKey] = (dailyVolumeLoad[dateKey] ?? 0.0) + volume;
     }
 
     // Converter para lista ordenada
     final List<Map<String, dynamic>> result = [];
-    final sortedKeys = dailyVolume.keys.toList()..sort();
+    final sortedKeys = dailyVolumeLoad.keys.toList()..sort();
 
     for (var key in sortedKeys) {
       final parts = key.split('-');
@@ -321,7 +327,7 @@ class AppDatabase extends _$AppDatabase {
       );
       result.add({
         'date': date,
-        'series': dailyVolume[key],
+        'volume': dailyVolumeLoad[key], // Agora a chave é 'volume' contendo Kg totais
       });
     }
 

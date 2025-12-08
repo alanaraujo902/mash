@@ -93,6 +93,7 @@ class WorkoutProvider extends ChangeNotifier {
         exerciseId: _currentExercise!.id,
         completedSeries: completedSeries,
         maxWeightKg: null,
+        totalVolumeLoad: 0.0, // Valor padrão, pois este método não calcula volume load
         completedAt: DateTime.now(),
       );
 

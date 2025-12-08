@@ -217,8 +217,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
             if (_selectedMuscleGroup != null)
               Text(
                 _selectedExercise == null
-                    ? 'Volume: ${_selectedMuscleGroup!.name} (Séries)'
-                    : 'Carga: ${_selectedExercise!.name} (Kg)',
+                    ? 'Volume Load: ${_selectedMuscleGroup!.name} (Total Kg)'
+                    : 'Carga Máxima: ${_selectedExercise!.name} (Kg)',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: titleColor,
                       fontWeight: FontWeight.bold,
@@ -377,7 +377,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 
-  // GRÁFICO DE BARRAS (SÉRIES) - Estilo Neon Purple
+  // GRÁFICO DE BARRAS (VOLUME LOAD) - Estilo Neon Purple
   Widget _buildVolumeChart(bool isNeon) {
     final barColor = isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
     final gridColor = isNeon ? Colors.white10 : Colors.grey.withOpacity(0.2);
@@ -386,7 +386,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: _getMaxSeries() * 1.2,
+        // Adiciona 20% de respiro no topo
+        maxY: _getMaxVolumeLoad() * 1.2,
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -409,12 +410,19 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
-              interval: 1,
+              reservedSize: 40, // Aumentado para caber números como "10k"
               getTitlesWidget: (value, meta) {
+                if (value == 0) return const Text('');
+                // Formatação compacta (ex: 1200 -> 1.2k)
+                if (value >= 1000) {
+                  return Text(
+                    '${(value / 1000).toStringAsFixed(1)}k',
+                    style: TextStyle(fontSize: 9, color: textColor),
+                  );
+                }
                 return Text(
                   value.toInt().toString(),
-                  style: TextStyle(fontSize: 10, color: textColor),
+                  style: TextStyle(fontSize: 9, color: textColor),
                 );
               },
             ),
@@ -425,7 +433,6 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: 1,
           getDrawingHorizontalLine: (value) => FlLine(
             color: gridColor,
             strokeWidth: 1,
@@ -433,12 +440,14 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
         ),
         borderData: FlBorderData(show: false),
         barGroups: _chartData.asMap().entries.map((entry) {
-          final int val = entry.value['series'] as int;
+          // Aqui pegamos 'volume' (que agora é double)
+          final double val = entry.value['volume'] as double;
+
           return BarChartGroupData(
             x: entry.key,
             barRods: [
               BarChartRodData(
-                toY: val.toDouble(),
+                toY: val,
                 gradient: isNeon
                     ? const LinearGradient(
                         colors: [AppColors.neonPurple, AppColors.secondary],
@@ -457,11 +466,10 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            // Tooltip com cor de fundo escura no Neon
             getTooltipColor: (group) => isNeon ? AppColors.neonCard : Colors.blueGrey,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
-                rod.toY.round().toString(),
+                '${rod.toY.round()} kg', // Exibe valor exato no tooltip
                 TextStyle(
                   color: isNeon ? AppColors.neonGreen : Colors.white,
                   fontWeight: FontWeight.bold,
@@ -474,11 +482,13 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 
-  double _getMaxSeries() {
-    int max = 0;
+  // Helper atualizado para pegar o máximo do novo formato de dados
+  double _getMaxVolumeLoad() {
+    double max = 0;
     for (var item in _chartData) {
-      if ((item['series'] as int) > max) max = item['series'] as int;
+      final val = item['volume'] as double;
+      if (val > max) max = val;
     }
-    return max.toDouble() == 0 ? 10 : max.toDouble();
+    return max == 0 ? 100 : max;
   }
 }

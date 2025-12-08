@@ -6,36 +6,27 @@ class MuscleGroupProvider extends ChangeNotifier {
   final AppDatabase database;
   List<MuscleGroup> _muscleGroups = [];
 
-  // Lista atualizada com os novos grupos solicitados
+  // CORREÇÃO: Variável para impedir execução simultânea
+  bool _isLoading = false;
+
   final List<String> _defaultGroups = [
     'Peito',
-    'Peito Superior', // Novo
+    'Peito Superior',
     'Dorso',
-    'Trapézio', // Novo
+    'Trapézio',
     'Ombro',
     'Bíceps',
     'Tríceps',
     'Antebraço',
     'Anterior de Coxa',
     'Posterior de Coxa',
-    'Glúteos', // Novo
+    'Glúteos',
     'Panturrilha',
   ];
 
-  // Cores correspondentes (adicionei cores novas para os novos grupos)
   final List<String> _defaultColors = [
-    '#FF6B6B', // Peito (Vermelho Claro)
-    '#D63031', // Peito Superior (Vermelho Mais Escuro)
-    '#98D8C8', // Dorso (Menta)
-    '#6c5ce7', // Trapézio (Roxo)
-    '#45B7D1', // Ombro (Azul)
-    '#FF6B6B', // Bíceps (Reutilizando Vermelho ou mudando para destaque)
-    '#4ECDC4', // Tríceps
-    '#F8B88B', // Antebraço
-    '#F7DC6F', // Anterior Coxa
-    '#BB8FCE', // Posterior Coxa
-    '#fd79a8', // Glúteos (Rosa)
-    '#85C1E2', // Panturrilha
+    '#FF6B6B', '#D63031', '#98D8C8', '#6c5ce7', '#45B7D1', '#FF6B6B',
+    '#4ECDC4', '#F8B88B', '#F7DC6F', '#BB8FCE', '#fd79a8', '#85C1E2',
   ];
 
   MuscleGroupProvider(this.database);
@@ -43,23 +34,36 @@ class MuscleGroupProvider extends ChangeNotifier {
   List<MuscleGroup> get muscleGroups => _muscleGroups;
 
   Future<void> loadMuscleGroups() async {
-    // 1. Carrega o que tem no banco
-    _muscleGroups = await database.getAllMuscleGroups();
+    // CORREÇÃO: Se já estiver carregando, cancela esta chamada
+    if (_isLoading) return;
 
-    // 2. Remove duplicatas existentes (Correção do problema atual)
-    await _removeDuplicates();
+    _isLoading = true;
 
-    // 3. Verifica e cria os grupos padrão que estiverem faltando
-    await _ensureDefaultGroupsExist();
+    try {
+      // 1. Carrega o que tem no banco
+      _muscleGroups = await database.getAllMuscleGroups();
 
-    // 4. Recarrega a lista final limpa e atualizada
-    _muscleGroups = await database.getAllMuscleGroups();
-    notifyListeners();
+      // 2. Remove duplicatas existentes (Isso vai limpar o que já está duplicado no seu app)
+      await _removeDuplicates();
+
+      // 3. Verifica e cria os grupos padrão que estiverem faltando
+      await _ensureDefaultGroupsExist();
+
+      // 4. Recarrega a lista final limpa e atualizada
+      _muscleGroups = await database.getAllMuscleGroups();
+      notifyListeners();
+    } finally {
+      // CORREÇÃO: Libera a flag para futuras chamadas
+      _isLoading = false;
+    }
   }
 
   Future<void> _removeDuplicates() async {
+    // Primeiro recarregamos para ter certeza que temos os dados mais atuais
+    final currentList = await database.getAllMuscleGroups();
     final Set<String> seenNames = {};
-    for (var group in _muscleGroups) {
+
+    for (var group in currentList) {
       if (seenNames.contains(group.name)) {
         // Se já vimos esse nome antes, é uma duplicata -> deletar do banco
         await database.deleteMuscleGroup(group.id);
@@ -70,8 +74,7 @@ class MuscleGroupProvider extends ChangeNotifier {
   }
 
   Future<void> _ensureDefaultGroupsExist() async {
-    // Pega os nomes que já estão no banco (após a limpeza)
-    // Atualizamos a lista local temporariamente para checagem
+    // Pega os nomes que já estão no banco atualizados
     final currentGroups = await database.getAllMuscleGroups();
     final existingNames = currentGroups.map((g) => g.name).toSet();
 

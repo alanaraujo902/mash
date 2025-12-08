@@ -2560,6 +2560,18 @@ class $WorkoutHistoriesTable extends WorkoutHistories
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _totalVolumeLoadMeta = const VerificationMeta(
+    'totalVolumeLoad',
+  );
+  @override
+  late final GeneratedColumn<double> totalVolumeLoad = GeneratedColumn<double>(
+    'total_volume_load',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
   static const VerificationMeta _completedAtMeta = const VerificationMeta(
     'completedAt',
   );
@@ -2579,6 +2591,7 @@ class $WorkoutHistoriesTable extends WorkoutHistories
     exerciseId,
     completedSeries,
     maxWeightKg,
+    totalVolumeLoad,
     completedAt,
   ];
   @override
@@ -2637,6 +2650,15 @@ class $WorkoutHistoriesTable extends WorkoutHistories
         ),
       );
     }
+    if (data.containsKey('total_volume_load')) {
+      context.handle(
+        _totalVolumeLoadMeta,
+        totalVolumeLoad.isAcceptableOrUnknown(
+          data['total_volume_load']!,
+          _totalVolumeLoadMeta,
+        ),
+      );
+    }
     if (data.containsKey('completed_at')) {
       context.handle(
         _completedAtMeta,
@@ -2675,6 +2697,10 @@ class $WorkoutHistoriesTable extends WorkoutHistories
         DriftSqlType.double,
         data['${effectivePrefix}max_weight_kg'],
       ),
+      totalVolumeLoad: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_volume_load'],
+      )!,
       completedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
@@ -2694,6 +2720,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
   final String exerciseId;
   final int completedSeries;
   final double? maxWeightKg;
+  final double totalVolumeLoad;
   final DateTime completedAt;
   const WorkoutHistory({
     required this.id,
@@ -2701,6 +2728,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
     required this.exerciseId,
     required this.completedSeries,
     this.maxWeightKg,
+    required this.totalVolumeLoad,
     required this.completedAt,
   });
   @override
@@ -2713,6 +2741,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
     if (!nullToAbsent || maxWeightKg != null) {
       map['max_weight_kg'] = Variable<double>(maxWeightKg);
     }
+    map['total_volume_load'] = Variable<double>(totalVolumeLoad);
     map['completed_at'] = Variable<DateTime>(completedAt);
     return map;
   }
@@ -2726,6 +2755,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
       maxWeightKg: maxWeightKg == null && nullToAbsent
           ? const Value.absent()
           : Value(maxWeightKg),
+      totalVolumeLoad: Value(totalVolumeLoad),
       completedAt: Value(completedAt),
     );
   }
@@ -2741,6 +2771,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
       exerciseId: serializer.fromJson<String>(json['exerciseId']),
       completedSeries: serializer.fromJson<int>(json['completedSeries']),
       maxWeightKg: serializer.fromJson<double?>(json['maxWeightKg']),
+      totalVolumeLoad: serializer.fromJson<double>(json['totalVolumeLoad']),
       completedAt: serializer.fromJson<DateTime>(json['completedAt']),
     );
   }
@@ -2753,6 +2784,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
       'exerciseId': serializer.toJson<String>(exerciseId),
       'completedSeries': serializer.toJson<int>(completedSeries),
       'maxWeightKg': serializer.toJson<double?>(maxWeightKg),
+      'totalVolumeLoad': serializer.toJson<double>(totalVolumeLoad),
       'completedAt': serializer.toJson<DateTime>(completedAt),
     };
   }
@@ -2763,6 +2795,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
     String? exerciseId,
     int? completedSeries,
     Value<double?> maxWeightKg = const Value.absent(),
+    double? totalVolumeLoad,
     DateTime? completedAt,
   }) => WorkoutHistory(
     id: id ?? this.id,
@@ -2770,6 +2803,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
     exerciseId: exerciseId ?? this.exerciseId,
     completedSeries: completedSeries ?? this.completedSeries,
     maxWeightKg: maxWeightKg.present ? maxWeightKg.value : this.maxWeightKg,
+    totalVolumeLoad: totalVolumeLoad ?? this.totalVolumeLoad,
     completedAt: completedAt ?? this.completedAt,
   );
   WorkoutHistory copyWithCompanion(WorkoutHistoriesCompanion data) {
@@ -2787,6 +2821,9 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
       maxWeightKg: data.maxWeightKg.present
           ? data.maxWeightKg.value
           : this.maxWeightKg,
+      totalVolumeLoad: data.totalVolumeLoad.present
+          ? data.totalVolumeLoad.value
+          : this.totalVolumeLoad,
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
@@ -2801,6 +2838,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
           ..write('exerciseId: $exerciseId, ')
           ..write('completedSeries: $completedSeries, ')
           ..write('maxWeightKg: $maxWeightKg, ')
+          ..write('totalVolumeLoad: $totalVolumeLoad, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
         .toString();
@@ -2813,6 +2851,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
     exerciseId,
     completedSeries,
     maxWeightKg,
+    totalVolumeLoad,
     completedAt,
   );
   @override
@@ -2824,6 +2863,7 @@ class WorkoutHistory extends DataClass implements Insertable<WorkoutHistory> {
           other.exerciseId == this.exerciseId &&
           other.completedSeries == this.completedSeries &&
           other.maxWeightKg == this.maxWeightKg &&
+          other.totalVolumeLoad == this.totalVolumeLoad &&
           other.completedAt == this.completedAt);
 }
 
@@ -2833,6 +2873,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
   final Value<String> exerciseId;
   final Value<int> completedSeries;
   final Value<double?> maxWeightKg;
+  final Value<double> totalVolumeLoad;
   final Value<DateTime> completedAt;
   final Value<int> rowid;
   const WorkoutHistoriesCompanion({
@@ -2841,6 +2882,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
     this.exerciseId = const Value.absent(),
     this.completedSeries = const Value.absent(),
     this.maxWeightKg = const Value.absent(),
+    this.totalVolumeLoad = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2850,6 +2892,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
     required String exerciseId,
     required int completedSeries,
     this.maxWeightKg = const Value.absent(),
+    this.totalVolumeLoad = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2862,6 +2905,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
     Expression<String>? exerciseId,
     Expression<int>? completedSeries,
     Expression<double>? maxWeightKg,
+    Expression<double>? totalVolumeLoad,
     Expression<DateTime>? completedAt,
     Expression<int>? rowid,
   }) {
@@ -2871,6 +2915,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (completedSeries != null) 'completed_series': completedSeries,
       if (maxWeightKg != null) 'max_weight_kg': maxWeightKg,
+      if (totalVolumeLoad != null) 'total_volume_load': totalVolumeLoad,
       if (completedAt != null) 'completed_at': completedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2882,6 +2927,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
     Value<String>? exerciseId,
     Value<int>? completedSeries,
     Value<double?>? maxWeightKg,
+    Value<double>? totalVolumeLoad,
     Value<DateTime>? completedAt,
     Value<int>? rowid,
   }) {
@@ -2891,6 +2937,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
       exerciseId: exerciseId ?? this.exerciseId,
       completedSeries: completedSeries ?? this.completedSeries,
       maxWeightKg: maxWeightKg ?? this.maxWeightKg,
+      totalVolumeLoad: totalVolumeLoad ?? this.totalVolumeLoad,
       completedAt: completedAt ?? this.completedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2914,6 +2961,9 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
     if (maxWeightKg.present) {
       map['max_weight_kg'] = Variable<double>(maxWeightKg.value);
     }
+    if (totalVolumeLoad.present) {
+      map['total_volume_load'] = Variable<double>(totalVolumeLoad.value);
+    }
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
@@ -2931,6 +2981,7 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
           ..write('exerciseId: $exerciseId, ')
           ..write('completedSeries: $completedSeries, ')
           ..write('maxWeightKg: $maxWeightKg, ')
+          ..write('totalVolumeLoad: $totalVolumeLoad, ')
           ..write('completedAt: $completedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6447,6 +6498,7 @@ typedef $$WorkoutHistoriesTableCreateCompanionBuilder =
       required String exerciseId,
       required int completedSeries,
       Value<double?> maxWeightKg,
+      Value<double> totalVolumeLoad,
       Value<DateTime> completedAt,
       Value<int> rowid,
     });
@@ -6457,6 +6509,7 @@ typedef $$WorkoutHistoriesTableUpdateCompanionBuilder =
       Value<String> exerciseId,
       Value<int> completedSeries,
       Value<double?> maxWeightKg,
+      Value<double> totalVolumeLoad,
       Value<DateTime> completedAt,
       Value<int> rowid,
     });
@@ -6536,6 +6589,11 @@ class $$WorkoutHistoriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get totalVolumeLoad => $composableBuilder(
+    column: $table.totalVolumeLoad,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
     builder: (column) => ColumnFilters(column),
@@ -6612,6 +6670,11 @@ class $$WorkoutHistoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get totalVolumeLoad => $composableBuilder(
+    column: $table.totalVolumeLoad,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
@@ -6683,6 +6746,11 @@ class $$WorkoutHistoriesTableAnnotationComposer
 
   GeneratedColumn<double> get maxWeightKg => $composableBuilder(
     column: $table.maxWeightKg,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalVolumeLoad => $composableBuilder(
+    column: $table.totalVolumeLoad,
     builder: (column) => column,
   );
 
@@ -6773,6 +6841,7 @@ class $$WorkoutHistoriesTableTableManager
                 Value<String> exerciseId = const Value.absent(),
                 Value<int> completedSeries = const Value.absent(),
                 Value<double?> maxWeightKg = const Value.absent(),
+                Value<double> totalVolumeLoad = const Value.absent(),
                 Value<DateTime> completedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkoutHistoriesCompanion(
@@ -6781,6 +6850,7 @@ class $$WorkoutHistoriesTableTableManager
                 exerciseId: exerciseId,
                 completedSeries: completedSeries,
                 maxWeightKg: maxWeightKg,
+                totalVolumeLoad: totalVolumeLoad,
                 completedAt: completedAt,
                 rowid: rowid,
               ),
@@ -6791,6 +6861,7 @@ class $$WorkoutHistoriesTableTableManager
                 required String exerciseId,
                 required int completedSeries,
                 Value<double?> maxWeightKg = const Value.absent(),
+                Value<double> totalVolumeLoad = const Value.absent(),
                 Value<DateTime> completedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkoutHistoriesCompanion.insert(
@@ -6799,6 +6870,7 @@ class $$WorkoutHistoriesTableTableManager
                 exerciseId: exerciseId,
                 completedSeries: completedSeries,
                 maxWeightKg: maxWeightKg,
+                totalVolumeLoad: totalVolumeLoad,
                 completedAt: completedAt,
                 rowid: rowid,
               ),

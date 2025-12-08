@@ -211,10 +211,19 @@ class ExerciseProvider extends ChangeNotifier {
       // --- SALVAR HISTÓRICO ---
       if (completedSeries.isNotEmpty) {
         double maxWeight = 0;
+        double volumeLoad = 0.0; // Variável para o cálculo
+
         for (var s in completedSeries) {
+          // Max Weight
           if ((s.weightKg ?? 0) > maxWeight) {
             maxWeight = s.weightKg!;
           }
+
+          // --- CÁLCULO DO VOLUME LOAD ---
+          // Volume de uma série = Repetições Feitas * Carga Usada
+          final reps = s.actualReps ?? 0;
+          final weight = s.weightKg ?? 0.0;
+          volumeLoad += (reps * weight);
         }
 
         final history = WorkoutHistory(
@@ -223,6 +232,7 @@ class ExerciseProvider extends ChangeNotifier {
           exerciseId: exercise.id,
           completedSeries: completedSeries.length,
           maxWeightKg: maxWeight > 0 ? maxWeight : null,
+          totalVolumeLoad: volumeLoad, // Salvando o novo cálculo
           completedAt: now,
         );
 
