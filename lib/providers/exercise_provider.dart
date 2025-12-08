@@ -68,8 +68,50 @@ class ExerciseProvider extends ChangeNotifier {
     int plannedReps,
     int intervalSeconds,
   ) async {
-    // Implementar lógica de atualização
+    // Buscar o exercício em todos os grupos para atualizar
+    for (var exercisesList in _exercisesBySessionMuscleGroup.values) {
+      final exerciseIndex = exercisesList.indexWhere((e) => e.id == exerciseId);
+      if (exerciseIndex != -1) {
+        final exercise = exercisesList[exerciseIndex];
+        final updated = exercise.copyWith(
+          name: name,
+          plannedSeries: plannedSeries,
+          plannedReps: plannedReps,
+          intervalSeconds: intervalSeconds,
+        );
+        await database.updateExercise(updated);
+        exercisesList[exerciseIndex] = updated;
+        notifyListeners();
+        return;
+      }
+    }
+  }
+
+  // Método para reordenar exercícios
+  Future<void> reorderExercises(String sessionMuscleGroupId, int oldIndex, int newIndex) async {
+    final list = _exercisesBySessionMuscleGroup[sessionMuscleGroupId];
+
+    if (list == null) return;
+
+    // Ajuste necessário do índice quando movemos para baixo
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    // 1. Atualiza a lista localmente (para a UI reagir instantaneamente)
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
     notifyListeners();
+
+    // 2. Atualiza a ordem no Banco de Dados
+    // Percorre toda a lista atualizada e salva o novo índice 'order'
+    for (int i = 0; i < list.length; i++) {
+      final updatedExercise = list[i].copyWith(order: i);
+      await database.updateExercise(updatedExercise);
+    }
+
+    // Recarrega para garantir sincronia total (opcional, mas seguro)
+    await loadExercises(sessionMuscleGroupId);
   }
 
   Future<void> deleteExercise(String exerciseId) async {
