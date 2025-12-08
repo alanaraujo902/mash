@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:drift/drift.dart';
 import '../database/database.dart';
 
 class ExerciseProvider extends ChangeNotifier {
@@ -116,6 +117,93 @@ class ExerciseProvider extends ChangeNotifier {
       null,
       null,
     );
+    notifyListeners();
+  }
+
+  // Verifica se todas as séries de todos os exercícios do grupo estão concluídas
+  Future<bool> checkAllExercisesCompleted(String sessionMuscleGroupId) async {
+    // 1. Pega todos os exercícios desse grupo
+    final exercises = await database.getExercisesBySessionMuscleGroup(sessionMuscleGroupId);
+
+    for (var exercise in exercises) {
+      // 2. Para cada exercício, pega as séries
+      final seriesList = await database.getExerciseSeriesList(exercise.id);
+
+      // 3. Se houver alguma série NÃO completada, retorna falso
+      if (seriesList.any((s) => !s.isCompleted)) {
+        return false;
+      }
+    }
+    // Se passou por tudo e não retornou false, então tudo está completo
+    return true;
+  }
+
+  // Finaliza o treino e salva no histórico
+  Future<void> finishSessionMuscleGroup(
+    String sessionMuscleGroupId,
+    String trainingSessionId,
+  ) async {
+    final now = DateTime.now();
+
+    // 1. Registrar a Sessão Geral
+    final workoutSessionId = const Uuid().v4();
+    final workoutSession = WorkoutSession(
+      id: workoutSessionId,
+      trainingSessionId: trainingSessionId,
+      sessionMuscleGroupId: sessionMuscleGroupId,
+      startedAt: now.subtract(const Duration(hours: 1)),
+      completedAt: now,
+      isCompleted: true,
+    );
+
+    await database.insertWorkoutSession(workoutSession);
+
+    // 2. Processar cada exercício
+    final exercises = await database.getExercisesBySessionMuscleGroup(sessionMuscleGroupId);
+
+    for (var exercise in exercises) {
+      final seriesList = await database.getExerciseSeriesList(exercise.id);
+
+      final completedSeries = seriesList.where((s) => s.isCompleted).toList();
+
+      // --- SALVAR HISTÓRICO ---
+      if (completedSeries.isNotEmpty) {
+        double maxWeight = 0;
+        for (var s in completedSeries) {
+          if ((s.weightKg ?? 0) > maxWeight) {
+            maxWeight = s.weightKg!;
+          }
+        }
+
+        final history = WorkoutHistory(
+          id: const Uuid().v4(),
+          workoutSessionId: workoutSessionId,
+          exerciseId: exercise.id,
+          completedSeries: completedSeries.length,
+          maxWeightKg: maxWeight > 0 ? maxWeight : null,
+          completedAt: now,
+        );
+
+        await database.insertWorkoutHistory(history);
+      }
+
+      // --- O RESET ACONTECE AQUI ---
+      for (var series in seriesList) {
+        // Usamos o copyWith para criar uma versão atualizada da série.
+        // MANTEMOS weightKg e actualReps (para servirem de sugestão no próximo treino)
+        // ALTERAMOS apenas isCompleted para false e completedAt para null
+        final resetSeries = series.copyWith(
+          isCompleted: false,
+          completedAt: const Value(null),
+          // weightKg e actualReps não são passados, então são mantidos automaticamente
+        );
+
+        // Atualiza no banco de dados
+        await database.updateExerciseSeries(resetSeries);
+      }
+    }
+
+    // Notifica a tela para recarregar se necessário
     notifyListeners();
   }
 }

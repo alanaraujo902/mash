@@ -80,10 +80,41 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                     exercise.name,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  subtitle: Text(
-                    '${exercise.plannedSeries} séries × ${exercise.plannedReps} reps',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  // --- ALTERAÇÃO AQUI ---
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        // Séries e Repetições
+                        const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${exercise.plannedSeries} x ${exercise.plannedReps}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Separador
+                        Container(
+                          width: 1,
+                          height: 14,
+                          color: Colors.grey[300],
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Intervalo de Descanso
+                        const Icon(Icons.timer_outlined, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${exercise.intervalSeconds}s',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
+                  // ---------------------
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     Navigator.push(

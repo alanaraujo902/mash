@@ -7,11 +7,13 @@ import 'dart:async';
 class ActiveWorkoutScreen extends StatefulWidget {
   final SessionMuscleGroup sessionMuscleGroup;
   final String groupName;
+  final String trainingSessionId; // NOVO CAMPO
 
   const ActiveWorkoutScreen({
     Key? key,
     required this.sessionMuscleGroup,
     required this.groupName,
+    required this.trainingSessionId, // NOVO CAMPO NO CONSTRUTOR
   }) : super(key: key);
 
   @override
@@ -41,6 +43,53 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     });
   }
 
+  void _checkOverallCompletion() async {
+    final provider = context.read<ExerciseProvider>();
+    final isAllDone = await provider.checkAllExercisesCompleted(widget.sessionMuscleGroup.id);
+
+    if (isAllDone && mounted) {
+      _showCompletionDialog();
+    }
+  }
+
+  void _showCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('🎉 Treino Concluído!'),
+        content: const Text(
+          'Parabéns! Você completou todas as séries.\nDeseja finalizar o treino e salvar no histórico?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Cancelar e ficar na tela
+            child: const Text('Revisar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Salvar no histórico
+              await context.read<ExerciseProvider>().finishSessionMuscleGroup(
+                widget.sessionMuscleGroup.id,
+                widget.trainingSessionId,
+              );
+
+              if (mounted) {
+                Navigator.pop(context); // Fecha dialog
+                Navigator.pop(context); // Sai da tela de treino
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Treino salvo no histórico com sucesso!')),
+                );
+              }
+            },
+            child: const Text('Finalizar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,17 +115,108 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   padding: const EdgeInsets.all(16),
                   itemCount: _exercises.length,
                   itemBuilder: (context, index) {
-                    return _ExerciseItem(exercise: _exercises[index]);
+                    return _ExerciseItem(
+                      exercise: _exercises[index],
+                      onCheckCompletion: _checkOverallCompletion, // Passando o callback
+                    );
                   },
                 ),
     );
   }
 }
 
+// --- WIDGET DO CRONÔMETRO (NOVO) ---
+class RestTimerDialog extends StatefulWidget {
+  final int initialSeconds;
+
+  const RestTimerDialog({Key? key, required this.initialSeconds}) : super(key: key);
+
+  @override
+  State<RestTimerDialog> createState() => _RestTimerDialogState();
+}
+
+class _RestTimerDialogState extends State<RestTimerDialog> {
+  late Timer _timer;
+  late int _remainingSeconds;
+
+  @override
+  void initState() {
+    super.initState();
+    _remainingSeconds = widget.initialSeconds;
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        _timer.cancel();
+        Navigator.of(context).pop(); // Fecha o diálogo automaticamente
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_timer.isActive) _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: const [
+          Icon(Icons.timer, color: Colors.blueAccent),
+          SizedBox(width: 10),
+          Text('Descanso'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$_remainingSeconds',
+            style: const TextStyle(
+              fontSize: 64,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          const Text('segundos restantes'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            // Adiciona +10 segundos
+            setState(() {
+              _remainingSeconds += 10;
+            });
+          },
+          child: const Text('+10s'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Pular / Continuar'),
+        ),
+      ],
+    );
+  }
+}
+
 class _ExerciseItem extends StatefulWidget {
   final Exercise exercise;
+  final VoidCallback onCheckCompletion; // NOVO CALLBACK
 
-  const _ExerciseItem({Key? key, required this.exercise}) : super(key: key);
+  const _ExerciseItem({
+    Key? key,
+    required this.exercise,
+    required this.onCheckCompletion, // NOVO
+  }) : super(key: key);
 
   @override
   State<_ExerciseItem> createState() => _ExerciseItemState();
@@ -109,6 +249,17 @@ class _ExerciseItemState extends State<_ExerciseItem> {
     }
   }
 
+  // Função para abrir o timer
+  void _showRestTimer() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // O usuário deve clicar no botão para fechar
+      builder: (context) => RestTimerDialog(
+        initialSeconds: widget.exercise.intervalSeconds,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -132,6 +283,13 @@ class _ExerciseItemState extends State<_ExerciseItem> {
             Column(
               children: _series.map((serie) => _SeriesRow(
                 serie: serie,
+                // Passamos a função do timer e verificação para a linha
+                onSeriesCompleted: () {
+                  // 1. Mostra o timer
+                  _showRestTimer();
+                  // 2. Verifica se o treino todo acabou
+                  widget.onCheckCompletion();
+                },
                 onSave: () => _loadData(),
               )).toList(),
             ),
@@ -161,7 +319,7 @@ class _ExerciseItemState extends State<_ExerciseItem> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
-                            text: '${widget.exercise.plannedSeries} séries de ${widget.exercise.plannedReps} repetições',
+                            text: '${widget.exercise.plannedSeries} séries de ${widget.exercise.plannedReps} repetições (${widget.exercise.intervalSeconds}s descanso)',
                           ),
                         ],
                       ),
@@ -234,11 +392,13 @@ class _ExerciseItemState extends State<_ExerciseItem> {
 
 class _SeriesRow extends StatefulWidget {
   final ExerciseSeries serie;
+  final VoidCallback onSeriesCompleted; // Callback para iniciar o timer
   final VoidCallback onSave;
 
   const _SeriesRow({
     Key? key,
     required this.serie,
+    required this.onSeriesCompleted,
     required this.onSave,
   }) : super(key: key);
 
@@ -291,6 +451,9 @@ class _SeriesRowState extends State<_SeriesRow> {
             weight,
           );
 
+      // Armazena o estado antigo
+      final wasCompleted = _isCompleted;
+
       // Recarregar séries para atualizar o estado
       final provider = context.read<ExerciseProvider>();
       await provider.loadExerciseSeries(widget.serie.exerciseId);
@@ -309,6 +472,11 @@ class _SeriesRowState extends State<_SeriesRow> {
         setState(() {
           _isCompleted = updatedSerie.isCompleted;
         });
+
+        // Só inicia o timer se estiver marcando como completo (não quando desmarca)
+        if (!wasCompleted && updatedSerie.isCompleted) {
+          widget.onSeriesCompleted();
+        }
 
         // Feedback visual
         ScaffoldMessenger.of(context).showSnackBar(
@@ -349,6 +517,7 @@ class _SeriesRowState extends State<_SeriesRow> {
                 isDense: true,
                 border: OutlineInputBorder(),
               ),
+              enabled: !_isCompleted, // Desabilita edição se concluído
             ),
           ),
           const SizedBox(width: 8),
@@ -363,6 +532,7 @@ class _SeriesRowState extends State<_SeriesRow> {
                 isDense: true,
                 border: OutlineInputBorder(),
               ),
+              enabled: !_isCompleted, // Desabilita edição se concluído
             ),
           ),
           const SizedBox(width: 16),

@@ -242,4 +242,94 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(tbl) => OrderingTerm(expression: tbl.completedAt, mode: OrderingMode.desc)]))
         .get();
   }
+
+  // --- ESTATÍSTICAS PARA EVOLUÇÃO ---
+
+  // 1. Evolução de Carga de um Exercício Específico
+  // Retorna uma lista de (Data, Peso) ordenada por data
+  Future<List<Map<String, dynamic>>> getExerciseWeightEvolution(String exerciseId) async {
+    final query = select(workoutHistories)
+      ..where((tbl) => tbl.exerciseId.equals(exerciseId))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.completedAt)]);
+
+    final results = await query.get();
+
+    return results.map((h) {
+      return {
+        'date': h.completedAt,
+        'weight': h.maxWeightKg ?? 0.0,
+      };
+    }).toList();
+  }
+
+  // 2. Volume de Séries por Grupo Muscular
+  // Retorna o total de séries feitas para aquele grupo agrupado por dia
+  Future<List<Map<String, dynamic>>> getMuscleGroupVolumeEvolution(String muscleGroupId) async {
+    // Precisamos fazer JOIN: History -> WorkoutSession -> SessionMuscleGroup
+    // Para filtrar pelo muscleGroupId
+
+    final query = select(workoutHistories).join([
+      innerJoin(
+        workoutSessions,
+        workoutSessions.id.equalsExp(workoutHistories.workoutSessionId),
+      ),
+      innerJoin(
+        sessionMuscleGroups,
+        sessionMuscleGroups.id.equalsExp(workoutSessions.sessionMuscleGroupId),
+      ),
+    ])
+      ..where(sessionMuscleGroups.muscleGroupId.equals(muscleGroupId))
+      ..orderBy([OrderingTerm(expression: workoutHistories.completedAt)]);
+
+    final rows = await query.get();
+
+    // Agrupamento manual por dia (Drift simple query)
+    final Map<String, int> dailyVolume = {}; // Key: "YYYY-MM-DD", Value: Total Series
+
+    for (var row in rows) {
+      final history = row.readTable(workoutHistories);
+      final dateKey =
+          "${history.completedAt.year}-${history.completedAt.month}-${history.completedAt.day}";
+
+      dailyVolume[dateKey] = (dailyVolume[dateKey] ?? 0) + history.completedSeries;
+    }
+
+    // Converter para lista ordenada
+    final List<Map<String, dynamic>> result = [];
+    final sortedKeys = dailyVolume.keys.toList()..sort();
+
+    for (var key in sortedKeys) {
+      final parts = key.split('-');
+      final date = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+      result.add({
+        'date': date,
+        'series': dailyVolume[key],
+      });
+    }
+
+    return result;
+  }
+
+  // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)
+  Future<List<Exercise>> getExercisesWithHistory(String muscleGroupId) async {
+    // Join reverso para pegar exercícios que pertencem a um grupo muscular e tem histórico
+    final query = select(exercises).join([
+      innerJoin(
+        workoutHistories,
+        workoutHistories.exerciseId.equalsExp(exercises.id),
+      ),
+      innerJoin(
+        sessionMuscleGroups,
+        sessionMuscleGroups.id.equalsExp(exercises.sessionMuscleGroupId),
+      ),
+    ])
+      ..where(sessionMuscleGroups.muscleGroupId.equals(muscleGroupId))
+      ..groupBy([exercises.id]); // Distinct exercises
+
+    return query.map((row) => row.readTable(exercises)).get();
+  }
 }

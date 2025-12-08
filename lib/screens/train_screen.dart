@@ -148,6 +148,7 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                             builder: (context) => ActiveWorkoutScreen(
                               sessionMuscleGroup: smg,
                               groupName: muscleGroup.name,
+                              trainingSessionId: widget.session.id,
                             ),
                           ),
                         );
