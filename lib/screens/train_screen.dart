@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
+import '../providers/workout_timer_provider.dart';
 import '../database/database.dart';
 import 'active_workout_screen.dart';
 
@@ -10,10 +11,77 @@ class TrainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTimerRunning = context.watch<WorkoutTimerProvider>().isRunning;
+    final totalTime = context.watch<WorkoutTimerProvider>().formattedTotalTime;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Treinar'),
         elevation: 0,
+        actions: [
+          if (isTimerRunning)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: InkWell(
+                  onTap: () {
+                    // Botão para parar o timer global manualmente
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Finalizar Treino do Dia?'),
+                        content: Text(
+                          'Tempo total: $totalTime\nIsso irá zerar o cronômetro geral.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Cancelar'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              context
+                                  .read<WorkoutTimerProvider>()
+                                  .stopAndResetGlobalTimer();
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text('Finalizar'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.red),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.stop_circle_outlined,
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          totalTime,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+        ],
       ),
       body: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(
         builder: (context, trainingProvider, muscleProvider, _) {

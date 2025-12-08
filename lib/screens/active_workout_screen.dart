@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/exercise_provider.dart';
 import '../providers/recovery_provider.dart';
+import '../providers/workout_timer_provider.dart';
 import 'home_screen.dart';
 import 'dart:async';
 
@@ -26,10 +27,52 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   bool _isLoading = true;
   List<Exercise> _exercises = [];
 
+  // Timer Local (Específico deste Grupo Muscular)
+  Timer? _groupTimer;
+  Duration _groupDuration = Duration.zero;
+  late DateTime _groupStartTime; // Para salvar no banco com precisão
+
   @override
   void initState() {
     super.initState();
     _loadExercises();
+
+    // Configura tempo de início real para o banco de dados
+    _groupStartTime = DateTime.now();
+
+    // 1. Inicia o Timer Geral (Via Provider)
+    // O microtask garante que o build já ocorreu antes de chamar o provider
+    Future.microtask(() {
+      context.read<WorkoutTimerProvider>().startGlobalTimer();
+    });
+
+    // 2. Inicia o Timer Local (Desta tela)
+    _startGroupTimer();
+  }
+
+  void _startGroupTimer() {
+    _groupTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _groupDuration += const Duration(seconds: 1);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _groupTimer?.cancel(); // Cancela apenas o timer local ao sair da tela
+    super.dispose();
+  }
+
+  // Helper para formatar o tempo local
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    final hours = duration.inHours > 0 ? '${twoDigits(duration.inHours)}:' : '';
+    return "$hours$minutes:$seconds";
   }
 
   Future<void> _loadExercises() async {
@@ -60,7 +103,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('🎉 Treino Concluído!'),
-        content: const Text(
+        content: Text(
+          'Tempo do grupo: ${_formatDuration(_groupDuration)}\n'
           'Parabéns! Você completou todas as séries.\nDeseja finalizar o treino e salvar no histórico?',
         ),
         actions: [
@@ -84,22 +128,19 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 );
               }
 
+              // NOTA IMPORTANTE:
+              // Se o usuário clicar em "Finalizar", entendemos que ele acabou ESTE grupo.
+              // O Timer Geral continua rodando pois ele pode ir para outro grupo.
+              // Se quiser parar o Timer Geral aqui, chame:
+              // context.read<WorkoutTimerProvider>().stopAndResetGlobalTimer();
+              // Mas como o pedido é timer "geral quando trocar de grupo", não paramos aqui.
+
               if (mounted) {
                 Navigator.pop(context); // Fecha dialog
-
-                // 3. Redirecionar para a tela Home na aba de Recuperação (Índice 3)
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(initialIndex: 3),
-                  ),
-                  (route) => false, // Remove todas as rotas anteriores
-                );
+                Navigator.pop(context); // Sai da tela de treino (Volta para lista)
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Treino finalizado! Verifique sua recuperação.'),
-                  ),
+                  const SnackBar(content: Text('Grupo finalizado!')),
                 );
               }
             },
@@ -112,6 +153,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Consumir o timer global
+    final globalTime = context.watch<WorkoutTimerProvider>().formattedTotalTime;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Treinando: ${widget.groupName}'),
@@ -127,20 +171,98 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           )
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _exercises.isEmpty
-              ? const Center(child: Text('Nenhum exercício neste grupo.'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _exercises.length,
-                  itemBuilder: (context, index) {
-                    return _ExerciseItem(
-                      exercise: _exercises[index],
-                      onCheckCompletion: _checkOverallCompletion, // Passando o callback
-                    );
-                  },
+      body: Column(
+        children: [
+          // --- BARRA DE TIMERS ---
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey.withOpacity(0.2),
                 ),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Timer do Grupo (Local)
+                Column(
+                  children: [
+                    const Text(
+                      'TEMPO GRUPO',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDuration(_groupDuration),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+                // Divisor Vertical
+                Container(
+                  height: 30,
+                  width: 1,
+                  color: Colors.grey.withOpacity(0.5),
+                ),
+                // Timer Geral (Global)
+                Column(
+                  children: [
+                    const Text(
+                      'TEMPO TOTAL',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      globalTime,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // --- CONTEÚDO DA LISTA DE EXERCÍCIOS ---
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _exercises.isEmpty
+                    ? const Center(child: Text('Nenhum exercício neste grupo.'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _exercises.length,
+                        itemBuilder: (context, index) {
+                          return _ExerciseItem(
+                            exercise: _exercises[index],
+                            onCheckCompletion:
+                                _checkOverallCompletion, // Passando o callback
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
