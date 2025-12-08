@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/exercise_provider.dart';
+import '../database/database.dart'; // Import necessário para o tipo Exercise
 
 class AddExerciseScreen extends StatefulWidget {
   final String sessionMuscleGroupId;
+  final Exercise? exerciseToEdit; // NOVO: Parâmetro opcional para edição
 
   const AddExerciseScreen({
     Key? key,
     required this.sessionMuscleGroupId,
+    this.exerciseToEdit, // Recebe null se for criar, ou o objeto se for editar
   }) : super(key: key);
 
   @override
@@ -21,6 +24,19 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   int _intervalSeconds = 60;
 
   @override
+  void initState() {
+    super.initState();
+    // SE ESTIVERMOS EDITANDO, PREENCHEMOS OS CAMPOS
+    if (widget.exerciseToEdit != null) {
+      final e = widget.exerciseToEdit!;
+      _nameController.text = e.name;
+      _plannedSeries = e.plannedSeries;
+      _plannedReps = e.plannedReps;
+      _intervalSeconds = e.intervalSeconds;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +44,12 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.exerciseToEdit != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar Exercício'),
+        // Muda o título dependendo da ação
+        title: Text(isEditing ? 'Editar Exercício' : 'Adicionar Exercício'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -58,37 +77,10 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: _plannedSeries > 1
-                      ? () {
-                          setState(() => _plannedSeries--);
-                        }
-                      : null,
-                  icon: const Icon(Icons.remove),
-                ),
-                Expanded(
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    controller: TextEditingController(
-                      text: _plannedSeries.toString(),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() => _plannedSeries++);
-                  },
-                  icon: const Icon(Icons.add),
-                ),
-              ],
+            _buildCounterRow(
+              value: _plannedSeries,
+              onChanged: (val) => setState(() => _plannedSeries = val),
+              min: 1,
             ),
             const SizedBox(height: 24),
             Text(
@@ -96,37 +88,10 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: _plannedReps > 1
-                      ? () {
-                          setState(() => _plannedReps--);
-                        }
-                      : null,
-                  icon: const Icon(Icons.remove),
-                ),
-                Expanded(
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    controller: TextEditingController(
-                      text: _plannedReps.toString(),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() => _plannedReps++);
-                  },
-                  icon: const Icon(Icons.add),
-                ),
-              ],
+            _buildCounterRow(
+              value: _plannedReps,
+              onChanged: (val) => setState(() => _plannedReps = val),
+              min: 1,
             ),
             const SizedBox(height: 24),
             Text(
@@ -134,37 +99,11 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: _intervalSeconds > 10
-                      ? () {
-                          setState(() => _intervalSeconds -= 10);
-                        }
-                      : null,
-                  icon: const Icon(Icons.remove),
-                ),
-                Expanded(
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    controller: TextEditingController(
-                      text: _intervalSeconds.toString(),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() => _intervalSeconds += 10);
-                  },
-                  icon: const Icon(Icons.add),
-                ),
-              ],
+            _buildCounterRow(
+              value: _intervalSeconds,
+              onChanged: (val) => setState(() => _intervalSeconds = val),
+              min: 10,
+              step: 10,
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -173,24 +112,78 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                 onPressed: _nameController.text.isEmpty
                     ? null
                     : () async {
-                        await context.read<ExerciseProvider>().addExercise(
-                              widget.sessionMuscleGroupId,
-                              _nameController.text,
-                              _plannedSeries,
-                              _plannedReps,
-                              _intervalSeconds,
-                            );
+                        if (isEditing) {
+                          // LÓGICA DE ATUALIZAÇÃO
+                          await context.read<ExerciseProvider>().updateExercise(
+                                widget.exerciseToEdit!.id,
+                                _nameController.text,
+                                _plannedSeries,
+                                _plannedReps,
+                                _intervalSeconds,
+                              );
+                        } else {
+                          // LÓGICA DE CRIAÇÃO
+                          await context.read<ExerciseProvider>().addExercise(
+                                widget.sessionMuscleGroupId,
+                                _nameController.text,
+                                _plannedSeries,
+                                _plannedReps,
+                                _intervalSeconds,
+                              );
+                        }
+
                         if (mounted) {
                           Navigator.pop(context);
                         }
                       },
-                child: const Text('Adicionar Exercício'),
+                child: Text(isEditing ? 'Salvar Alterações' : 'Adicionar Exercício'),
               ),
             ),
           ],
         ),
         ),
       ),
+    );
+  }
+
+  // Widget auxiliar para evitar repetição de código nos contadores
+  Widget _buildCounterRow({
+    required int value,
+    required Function(int) onChanged,
+    int min = 1,
+    int step = 1,
+  }) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: value > min
+              ? () {
+                  onChanged(value - step);
+                }
+              : null,
+          icon: const Icon(Icons.remove),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            onChanged(value + step);
+          },
+          icon: const Icon(Icons.add),
+        ),
+      ],
     );
   }
 }

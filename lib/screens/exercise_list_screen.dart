@@ -28,6 +28,19 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
     });
   }
 
+  // Função auxiliar para navegar para edição
+  void _editExercise(BuildContext context, var exercise) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddExerciseScreen(
+          sessionMuscleGroupId: widget.sessionMuscleGroupId,
+          exerciseToEdit: exercise, // Passamos o exercício para editar
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,7 +108,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 elevation: 2,
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   // Ícone de arrastar à esquerda para indicar a funcionalidade
                   leading: const Icon(Icons.drag_handle, color: Colors.grey),
                   title: Text(
@@ -106,26 +119,19 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Row(
                       children: [
-                        // Séries e Repetições
                         const Icon(Icons.repeat, size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
                           '${exercise.plannedSeries} x ${exercise.plannedReps}',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-
                         const SizedBox(width: 16),
-
-                        // Separador
                         Container(
                           width: 1,
                           height: 14,
                           color: Colors.grey[300],
                         ),
-
                         const SizedBox(width: 16),
-
-                        // Intervalo de Descanso
                         const Icon(Icons.timer_outlined, size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
@@ -135,36 +141,52 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                       ],
                     ),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Excluir exercício'),
-                          content: Text('Deseja excluir "${exercise.name}"?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cancelar'),
+                  // ALTERADO AQUI: Row com Botão Editar e Excluir
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // BOTÃO EDITAR
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        tooltip: 'Editar',
+                        onPressed: () => _editExercise(context, exercise),
+                      ),
+                      // BOTÃO EXCLUIR
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        tooltip: 'Excluir',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Excluir exercício'),
+                              content: Text('Deseja excluir "${exercise.name}"?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await context
+                                        .read<ExerciseProvider>()
+                                        .deleteExercise(exercise.id);
+                                    if (ctx.mounted) Navigator.pop(ctx);
+                                  },
+                                  child: const Text(
+                                    'Excluir',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () async {
-                                await context
-                                    .read<ExerciseProvider>()
-                                    .deleteExercise(exercise.id);
-                                if (ctx.mounted) Navigator.pop(ctx);
-                              },
-                              child: const Text(
-                                'Excluir',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ],
                   ),
+                  // Também permite editar ao clicar no corpo do card
+                  onTap: () => _editExercise(context, exercise),
                 ),
               );
             },
