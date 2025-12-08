@@ -261,9 +261,9 @@ class AppDatabase extends _$AppDatabase {
 
   // --- ESTATÍSTICAS PARA EVOLUÇÃO ---
 
-  // 1. Evolução de Carga de um Exercício Específico
-  // Retorna uma lista de (Data, Peso) ordenada por data
-  Future<List<Map<String, dynamic>>> getExerciseWeightEvolution(String exerciseId) async {
+  // 1. Evolução Detalhada de um Exercício (Peso Máximo + Volume Load)
+  // Retorna: Data, Peso Máximo (kg), Volume Load Total (kg)
+  Future<List<Map<String, dynamic>>> getExerciseHistoryDetails(String exerciseId) async {
     final query = select(workoutHistories)
       ..where((tbl) => tbl.exerciseId.equals(exerciseId))
       ..orderBy([(tbl) => OrderingTerm(expression: tbl.completedAt)]);
@@ -274,7 +274,17 @@ class AppDatabase extends _$AppDatabase {
       return {
         'date': h.completedAt,
         'weight': h.maxWeightKg ?? 0.0,
+        'volume': h.totalVolumeLoad, // Agora incluímos o Volume Load
       };
+    }).toList();
+  }
+
+  // Mantido para compatibilidade (pode ser removido se não for usado)
+  Future<List<Map<String, dynamic>>> getExerciseWeightEvolution(String exerciseId) async {
+    final details = await getExerciseHistoryDetails(exerciseId);
+    return details.map((d) => {
+      'date': d['date'],
+      'weight': d['weight'],
     }).toList();
   }
 

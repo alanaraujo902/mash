@@ -77,12 +77,12 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     });
 
     final db = context.read<AppDatabase>();
-    // Carregar dados de CARGA (Peso)
-    final weightData = await db.getExerciseWeightEvolution(exercise.id);
+    // Carregar dados detalhados (Carga + Volume) do exercício
+    final historyData = await db.getExerciseHistoryDetails(exercise.id);
 
     if (mounted) {
       setState(() {
-        _chartData = weightData;
+        _chartData = historyData;
         _isLoading = false;
       });
     }
@@ -213,12 +213,12 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
 
             const SizedBox(height: 24),
 
-            // --- TÍTULO DO GRÁFICO ---
-            if (_selectedMuscleGroup != null)
+            // --- TÍTULO DO GRÁFICO E LEGENDAS ---
+            if (_selectedMuscleGroup != null) ...[
               Text(
                 _selectedExercise == null
-                    ? 'Volume Load: ${_selectedMuscleGroup!.name} (Total Kg)'
-                    : 'Carga Máxima: ${_selectedExercise!.name} (Kg)',
+                    ? 'Volume Total por Grupo (kg)'
+                    : '${_selectedExercise!.name}',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: titleColor,
                       fontWeight: FontWeight.bold,
@@ -233,6 +233,25 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                     ),
                 textAlign: TextAlign.center,
               ),
+              if (_selectedExercise != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildLegendItem(
+                        'Carga Máx (Verde)',
+                        isNeon ? AppColors.neonGreen : Colors.green,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildLegendItem(
+                        'Volume Load (Barra)',
+                        isNeon ? AppColors.neonPurple : AppColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -252,13 +271,30 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                               ),
                             )
                           : _selectedExercise == null
-                              ? _buildVolumeChart(isNeon) // Barras (Séries)
-                              : _buildWeightChart(isNeon), // Linha (Peso)
+                              ? _buildVolumeBarChart(isNeon) // Gráfico Geral (Grupo)
+                              : _buildExerciseDetailChart(isNeon), // Gráfico Detalhado (Exercício)
             ),
           ],
         ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLegendItem(String text, Color color) {
+    return Row(
+      children: [
+        if (text.contains('Barra'))
+          Container(width: 12, height: 12, color: color)
+        else
+          Text(
+            '90kg',
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.bold, color: color),
+          ),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 
@@ -284,27 +320,33 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 
-  // GRÁFICO DE LINHA (PESO) - Estilo Neon Green
-  Widget _buildWeightChart(bool isNeon) {
-    final lineColor = isNeon ? AppColors.neonGreen : Theme.of(context).primaryColor;
+  // --- NOVO DESIGN PARA DETALHES DO EXERCÍCIO ---
+  // Barra = Volume Load | Texto Verde em cima = Carga Máxima
+  Widget _buildExerciseDetailChart(bool isNeon) {
+    final barColor =
+        isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
+    final maxWeightColor =
+        isNeon ? AppColors.neonGreen : const Color(0xFF00C853); // Verde forte
     final gridColor = isNeon ? Colors.white10 : Colors.grey.withOpacity(0.2);
     final textColor = isNeon ? Colors.grey[400] : Colors.black54;
 
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: gridColor,
-            strokeWidth: 1,
-          ),
-        ),
+    // Calcular máximo para dar respiro ao texto em cima da barra
+    double maxVolume = 0;
+    for (var d in _chartData) {
+      final v = (d['volume'] as num).toDouble();
+      if (v > maxVolume) maxVolume = v;
+    }
+    // Aumentamos o teto em 30% para caber o texto "90kg" sem cortar
+    double maxY = (maxVolume == 0 ? 100 : maxVolume) * 1.3;
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: maxY,
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 && value.toInt() < _chartData.length) {
                   final date = _chartData[value.toInt()]['date'] as DateTime;
@@ -318,7 +360,6 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                 }
                 return const Text('');
               },
-              interval: 1,
             ),
           ),
           leftTitles: AxisTitles(
@@ -326,9 +367,17 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
               showTitles: true,
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
+                if (value == 0) return const Text('');
+                // Exibe Volume Load no eixo Y (ex: 1.2k)
+                if (value >= 1000) {
+                  return Text(
+                    '${(value / 1000).toStringAsFixed(1)}k',
+                    style: TextStyle(fontSize: 9, color: textColor),
+                  );
+                }
                 return Text(
                   value.toInt().toString(),
-                  style: TextStyle(fontSize: 10, color: textColor),
+                  style: TextStyle(fontSize: 9, color: textColor),
                 );
               },
             ),
@@ -336,49 +385,80 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: _chartData.asMap().entries.map((entry) {
-              return FlSpot(
-                entry.key.toDouble(),
-                (entry.value['weight'] as double),
-              );
-            }).toList(),
-            isCurved: true,
-            color: lineColor,
-            barWidth: 3,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
-                  color: isNeon ? Colors.black : Colors.white,
-                  strokeWidth: 2,
-                  strokeColor: lineColor,
-                );
-              },
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [
-                  lineColor.withOpacity(isNeon ? 0.3 : 0.2),
-                  lineColor.withOpacity(0.0),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (_) => FlLine(
+            color: gridColor,
+            strokeWidth: 1,
           ),
-        ],
+        ),
+        borderData: FlBorderData(show: false),
+
+        // AQUI ESTÁ A MÁGICA: Usar Tooltips para desenhar o texto estático
+        barTouchData: BarTouchData(
+          enabled: false, // Desabilita interação de toque padrão para focar no visual estático
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => Colors.transparent, // Fundo transparente
+            tooltipPadding: EdgeInsets.zero,
+            tooltipMargin: 4, // Espaço entre a barra e o texto
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              // Recupera o peso original usando o índice do grupo (eixo X)
+              final weight = (_chartData[group.x.toInt()]['weight'] as num);
+
+              return BarTooltipItem(
+                '${weight.toStringAsFixed(1).replaceAll('.0', '')}kg',
+                TextStyle(
+                  color: maxWeightColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  shadows: isNeon
+                      ? [Shadow(color: maxWeightColor, blurRadius: 4)]
+                      : null,
+                ),
+              );
+            },
+          ),
+        ),
+
+        barGroups: _chartData.asMap().entries.map((entry) {
+          final double volume = (entry.value['volume'] as num).toDouble();
+
+          return BarChartGroupData(
+            x: entry.key,
+            // Importante: showingTooltipIndicators: [0] força o tooltip aparecer sempre
+            showingTooltipIndicators: [0],
+            barRods: [
+              BarChartRodData(
+                toY: volume,
+                gradient: isNeon
+                    ? const LinearGradient(
+                        colors: [AppColors.neonPurple, AppColors.secondary],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      )
+                    : null,
+                color: isNeon ? null : barColor,
+                width: 18,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(4)),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: maxY, // Fundo cinza claro até o topo (opcional, ajuda a visualizar escala)
+                  color: isNeon
+                      ? Colors.white.withOpacity(0.02)
+                      : Colors.grey.withOpacity(0.05),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
 
-  // GRÁFICO DE BARRAS (VOLUME LOAD) - Estilo Neon Purple
-  Widget _buildVolumeChart(bool isNeon) {
+  // --- GRÁFICO DE GRUPO MUSCULAR (Soma Total - Mantido igual) ---
+  Widget _buildVolumeBarChart(bool isNeon) {
     final barColor = isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
     final gridColor = isNeon ? Colors.white10 : Colors.grey.withOpacity(0.2);
     final textColor = isNeon ? Colors.grey[400] : Colors.black54;
@@ -460,7 +540,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
               ),
             ],
-            showingTooltipIndicators: [0],
+            // Aqui adicionamos tooltip ao tocar apenas
           );
         }).toList(),
         barTouchData: BarTouchData(
@@ -469,7 +549,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
             getTooltipColor: (group) => isNeon ? AppColors.neonCard : Colors.blueGrey,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
-                '${rod.toY.round()} kg', // Exibe valor exato no tooltip
+                '${rod.toY.round()} kg',
                 TextStyle(
                   color: isNeon ? AppColors.neonGreen : Colors.white,
                   fontWeight: FontWeight.bold,
