@@ -32,7 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
+      body: SafeArea(
+        child: IndexedStack(
         index: _selectedIndex,
         children: const [
           TrainScreen(),            // 0
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
           EvolutionScreen(),        // 2
           RecoveryScreen(),         // 3: Nova Tela
         ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,

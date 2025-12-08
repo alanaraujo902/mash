@@ -151,7 +151,8 @@ class _CreateTrainingSessionScreenState
       appBar: AppBar(
         title: const Text('Nova Sessão de Treino'),
       ),
-      body: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(
+      body: SafeArea(
+        child: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(
         builder: (context, trainingProvider, muscleProvider, _) {
           final muscleGroups = muscleProvider.muscleGroups;
 
@@ -234,6 +235,7 @@ class _CreateTrainingSessionScreenState
             ),
           );
         },
+        ),
       ),
     );
   }

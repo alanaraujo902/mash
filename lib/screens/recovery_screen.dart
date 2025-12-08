@@ -65,7 +65,8 @@ class RecoveryScreen extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Recuperação Muscular'),
           ),
-          body: groups.isEmpty
+          body: SafeArea(
+            child: groups.isEmpty
               ? const Center(child: Text('Nenhum grupo muscular cadastrado.'))
               : ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -243,6 +244,7 @@ class RecoveryScreen extends StatelessWidget {
               );
             },
           ),
+            ),
         );
       },
     );

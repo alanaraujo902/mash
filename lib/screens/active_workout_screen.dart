@@ -195,8 +195,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           )
         ],
       ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          children: [
           // --- BARRA DE TIMERS ---
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -308,6 +309,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       ),
           ),
         ],
+        ),
       ),
     );
   }

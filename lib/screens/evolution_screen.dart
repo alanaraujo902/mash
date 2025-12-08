@@ -134,7 +134,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
         title: const Text('Evolução'),
         elevation: 0,
       ),
-      body: Padding(
+      body: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -255,6 +256,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                               : _buildWeightChart(isNeon), // Linha (Peso)
             ),
           ],
+        ),
         ),
       ),
     );

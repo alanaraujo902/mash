@@ -32,7 +32,8 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
       appBar: AppBar(
         title: const Text('Adicionar Exercício'),
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,6 +188,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

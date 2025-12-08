@@ -163,7 +163,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       appBar: AppBar(
         title: Text(widget.exerciseName),
       ),
-      body: _exerciseSeries == null
+      body: SafeArea(
+        child: _exerciseSeries == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -231,6 +232,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 ],
               ),
             ),
+        ),
     );
   }
 }

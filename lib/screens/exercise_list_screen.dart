@@ -34,7 +34,8 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
       appBar: AppBar(
         title: Text(widget.muscleGroupName),
       ),
-      body: Consumer<ExerciseProvider>(
+      body: SafeArea(
+        child: Consumer<ExerciseProvider>(
         builder: (context, exerciseProvider, _) {
           final exercises =
               exerciseProvider.getExercises(widget.sessionMuscleGroupId);
@@ -169,6 +170,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
             },
           );
         },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

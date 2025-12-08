@@ -140,7 +140,8 @@ class TrainingSessionsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer3<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider>(
+      body: SafeArea(
+        child: Consumer3<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider>(
         builder: (context, trainingProvider, muscleProvider, themeProvider, _) {
           final sessions = trainingProvider.trainingSessions;
           final isNeon = themeProvider.isNeon;
@@ -270,6 +271,7 @@ class TrainingSessionsScreen extends StatelessWidget {
             },
           );
         },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
