@@ -60,7 +60,7 @@ class TrainingSessionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sessões de Treino'),
+        title: const Text('Configuração de Treinos'),
         elevation: 0,
       ),
       body: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(

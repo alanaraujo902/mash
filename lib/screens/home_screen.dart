@@ -4,6 +4,7 @@ import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
 import 'training_sessions_screen.dart';
 import 'evolution_screen.dart';
+import 'train_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -30,8 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: const [
-          TrainingSessionsScreen(),
-          EvolutionScreen(),
+          TrainScreen(),            // 0: Tela Principal de Execução
+          TrainingSessionsScreen(), // 1: Antiga "Treinos", agora Configuração
+          EvolutionScreen(),        // 2: Evolução
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -43,8 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.fitness_center),
-            label: 'Treinos',
+            icon: Icon(Icons.play_circle_fill),
+            label: 'Treinar', // Nova aba
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings),
+            label: 'Configuração', // Renomeado de "Treinos"
           ),
           NavigationDestination(
             icon: Icon(Icons.trending_up),

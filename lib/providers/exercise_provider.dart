@@ -6,6 +6,9 @@ class ExerciseProvider extends ChangeNotifier {
   final AppDatabase database;
   Map<String, List<Exercise>> _exercisesBySessionMuscleGroup = {};
   Map<String, List<ExerciseSeries>> _exerciseSeriesList = {};
+  
+  // Cache para histórico
+  Map<String, List<WorkoutHistory>> _exerciseHistories = {};
 
   ExerciseProvider(this.database);
 
@@ -81,6 +84,17 @@ class ExerciseProvider extends ChangeNotifier {
 
   List<ExerciseSeries> getExerciseSeries(String exerciseId) {
     return _exerciseSeriesList[exerciseId] ?? [];
+  }
+
+  // Métodos para histórico
+  Future<void> loadExerciseHistory(String exerciseId) async {
+    _exerciseHistories[exerciseId] = 
+        await database.getWorkoutHistoryByExercise(exerciseId);
+    notifyListeners();
+  }
+
+  List<WorkoutHistory> getExerciseHistory(String exerciseId) {
+    return _exerciseHistories[exerciseId] ?? [];
   }
 
   Future<void> updateExerciseSeries(

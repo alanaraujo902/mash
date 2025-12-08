@@ -13,6 +13,7 @@ class TrainingSessionProvider extends ChangeNotifier {
 
   List<TrainingSession> get trainingSessions => _trainingSessions;
   TrainingSession? get activeSession => _activeSession;
+  AppDatabase get db => database;
 
   Future<void> loadTrainingSessions() async {
     _trainingSessions = await database.getAllTrainingSessions();
