@@ -5,20 +5,24 @@ import '../providers/muscle_group_provider.dart';
 import 'training_sessions_screen.dart';
 import 'evolution_screen.dart';
 import 'train_screen.dart';
+import 'recovery_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final int initialIndex; // Adicione isso para permitir navegação direta
+
+  const HomeScreen({Key? key, this.initialIndex = 0}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex; // Usa o índice inicial
     Future.microtask(() {
       context.read<MuscleGroupProvider>().loadMuscleGroups();
       context.read<TrainingSessionProvider>().loadTrainingSessions();
@@ -31,9 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: const [
-          TrainScreen(),            // 0: Tela Principal de Execução
-          TrainingSessionsScreen(), // 1: Antiga "Treinos", agora Configuração
-          EvolutionScreen(),        // 2: Evolução
+          TrainScreen(),            // 0
+          TrainingSessionsScreen(), // 1
+          EvolutionScreen(),        // 2
+          RecoveryScreen(),         // 3: Nova Tela
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -55,6 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.trending_up),
             label: 'Evolução',
+          ),
+          NavigationDestination(
+            // Nova aba
+            icon: Icon(Icons.medical_services_outlined),
+            selectedIcon: Icon(Icons.medical_services),
+            label: 'Recuperação',
           ),
         ],
       ),

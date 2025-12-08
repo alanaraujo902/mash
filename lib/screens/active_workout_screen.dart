@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/exercise_provider.dart';
+import '../providers/recovery_provider.dart';
+import 'home_screen.dart';
 import 'dart:async';
 
 class ActiveWorkoutScreen extends StatefulWidget {
@@ -68,18 +70,36 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // Salvar no histórico
+              // 1. Salvar no histórico (código existente)
               await context.read<ExerciseProvider>().finishSessionMuscleGroup(
                 widget.sessionMuscleGroup.id,
                 widget.trainingSessionId,
               );
 
+              // 2. Marcar grupo muscular como FATIGADO (NOVO)
+              if (mounted) {
+                // Precisamos do ID do grupo muscular real, não o da sessão
+                await context.read<RecoveryProvider>().markAsFatigued(
+                  widget.sessionMuscleGroup.muscleGroupId,
+                );
+              }
+
               if (mounted) {
                 Navigator.pop(context); // Fecha dialog
-                Navigator.pop(context); // Sai da tela de treino
+
+                // 3. Redirecionar para a tela Home na aba de Recuperação (Índice 3)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(initialIndex: 3),
+                  ),
+                  (route) => false, // Remove todas as rotas anteriores
+                );
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Treino salvo no histórico com sucesso!')),
+                  const SnackBar(
+                    content: Text('Treino finalizado! Verifique sua recuperação.'),
+                  ),
                 );
               }
             },

@@ -2938,6 +2938,398 @@ class WorkoutHistoriesCompanion extends UpdateCompanion<WorkoutHistory> {
   }
 }
 
+class $MuscleRecoveriesTable extends MuscleRecoveries
+    with TableInfo<$MuscleRecoveriesTable, MuscleRecovery> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MuscleRecoveriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _muscleGroupIdMeta = const VerificationMeta(
+    'muscleGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> muscleGroupId = GeneratedColumn<String>(
+    'muscle_group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES muscle_groups (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _isRecoveredMeta = const VerificationMeta(
+    'isRecovered',
+  );
+  @override
+  late final GeneratedColumn<bool> isRecovered = GeneratedColumn<bool>(
+    'is_recovered',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_recovered" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _lastWorkoutDateMeta = const VerificationMeta(
+    'lastWorkoutDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastWorkoutDate =
+      GeneratedColumn<DateTime>(
+        'last_workout_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _recoveredAtMeta = const VerificationMeta(
+    'recoveredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recoveredAt = GeneratedColumn<DateTime>(
+    'recovered_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    muscleGroupId,
+    isRecovered,
+    lastWorkoutDate,
+    recoveredAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'muscle_recoveries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MuscleRecovery> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('muscle_group_id')) {
+      context.handle(
+        _muscleGroupIdMeta,
+        muscleGroupId.isAcceptableOrUnknown(
+          data['muscle_group_id']!,
+          _muscleGroupIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_muscleGroupIdMeta);
+    }
+    if (data.containsKey('is_recovered')) {
+      context.handle(
+        _isRecoveredMeta,
+        isRecovered.isAcceptableOrUnknown(
+          data['is_recovered']!,
+          _isRecoveredMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_workout_date')) {
+      context.handle(
+        _lastWorkoutDateMeta,
+        lastWorkoutDate.isAcceptableOrUnknown(
+          data['last_workout_date']!,
+          _lastWorkoutDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recovered_at')) {
+      context.handle(
+        _recoveredAtMeta,
+        recoveredAt.isAcceptableOrUnknown(
+          data['recovered_at']!,
+          _recoveredAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MuscleRecovery map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MuscleRecovery(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      muscleGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}muscle_group_id'],
+      )!,
+      isRecovered: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_recovered'],
+      )!,
+      lastWorkoutDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_workout_date'],
+      ),
+      recoveredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recovered_at'],
+      ),
+    );
+  }
+
+  @override
+  $MuscleRecoveriesTable createAlias(String alias) {
+    return $MuscleRecoveriesTable(attachedDatabase, alias);
+  }
+}
+
+class MuscleRecovery extends DataClass implements Insertable<MuscleRecovery> {
+  final String id;
+  final String muscleGroupId;
+  final bool isRecovered;
+  final DateTime? lastWorkoutDate;
+  final DateTime? recoveredAt;
+  const MuscleRecovery({
+    required this.id,
+    required this.muscleGroupId,
+    required this.isRecovered,
+    this.lastWorkoutDate,
+    this.recoveredAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['muscle_group_id'] = Variable<String>(muscleGroupId);
+    map['is_recovered'] = Variable<bool>(isRecovered);
+    if (!nullToAbsent || lastWorkoutDate != null) {
+      map['last_workout_date'] = Variable<DateTime>(lastWorkoutDate);
+    }
+    if (!nullToAbsent || recoveredAt != null) {
+      map['recovered_at'] = Variable<DateTime>(recoveredAt);
+    }
+    return map;
+  }
+
+  MuscleRecoveriesCompanion toCompanion(bool nullToAbsent) {
+    return MuscleRecoveriesCompanion(
+      id: Value(id),
+      muscleGroupId: Value(muscleGroupId),
+      isRecovered: Value(isRecovered),
+      lastWorkoutDate: lastWorkoutDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastWorkoutDate),
+      recoveredAt: recoveredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recoveredAt),
+    );
+  }
+
+  factory MuscleRecovery.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MuscleRecovery(
+      id: serializer.fromJson<String>(json['id']),
+      muscleGroupId: serializer.fromJson<String>(json['muscleGroupId']),
+      isRecovered: serializer.fromJson<bool>(json['isRecovered']),
+      lastWorkoutDate: serializer.fromJson<DateTime?>(json['lastWorkoutDate']),
+      recoveredAt: serializer.fromJson<DateTime?>(json['recoveredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'muscleGroupId': serializer.toJson<String>(muscleGroupId),
+      'isRecovered': serializer.toJson<bool>(isRecovered),
+      'lastWorkoutDate': serializer.toJson<DateTime?>(lastWorkoutDate),
+      'recoveredAt': serializer.toJson<DateTime?>(recoveredAt),
+    };
+  }
+
+  MuscleRecovery copyWith({
+    String? id,
+    String? muscleGroupId,
+    bool? isRecovered,
+    Value<DateTime?> lastWorkoutDate = const Value.absent(),
+    Value<DateTime?> recoveredAt = const Value.absent(),
+  }) => MuscleRecovery(
+    id: id ?? this.id,
+    muscleGroupId: muscleGroupId ?? this.muscleGroupId,
+    isRecovered: isRecovered ?? this.isRecovered,
+    lastWorkoutDate: lastWorkoutDate.present
+        ? lastWorkoutDate.value
+        : this.lastWorkoutDate,
+    recoveredAt: recoveredAt.present ? recoveredAt.value : this.recoveredAt,
+  );
+  MuscleRecovery copyWithCompanion(MuscleRecoveriesCompanion data) {
+    return MuscleRecovery(
+      id: data.id.present ? data.id.value : this.id,
+      muscleGroupId: data.muscleGroupId.present
+          ? data.muscleGroupId.value
+          : this.muscleGroupId,
+      isRecovered: data.isRecovered.present
+          ? data.isRecovered.value
+          : this.isRecovered,
+      lastWorkoutDate: data.lastWorkoutDate.present
+          ? data.lastWorkoutDate.value
+          : this.lastWorkoutDate,
+      recoveredAt: data.recoveredAt.present
+          ? data.recoveredAt.value
+          : this.recoveredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MuscleRecovery(')
+          ..write('id: $id, ')
+          ..write('muscleGroupId: $muscleGroupId, ')
+          ..write('isRecovered: $isRecovered, ')
+          ..write('lastWorkoutDate: $lastWorkoutDate, ')
+          ..write('recoveredAt: $recoveredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, muscleGroupId, isRecovered, lastWorkoutDate, recoveredAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MuscleRecovery &&
+          other.id == this.id &&
+          other.muscleGroupId == this.muscleGroupId &&
+          other.isRecovered == this.isRecovered &&
+          other.lastWorkoutDate == this.lastWorkoutDate &&
+          other.recoveredAt == this.recoveredAt);
+}
+
+class MuscleRecoveriesCompanion extends UpdateCompanion<MuscleRecovery> {
+  final Value<String> id;
+  final Value<String> muscleGroupId;
+  final Value<bool> isRecovered;
+  final Value<DateTime?> lastWorkoutDate;
+  final Value<DateTime?> recoveredAt;
+  final Value<int> rowid;
+  const MuscleRecoveriesCompanion({
+    this.id = const Value.absent(),
+    this.muscleGroupId = const Value.absent(),
+    this.isRecovered = const Value.absent(),
+    this.lastWorkoutDate = const Value.absent(),
+    this.recoveredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MuscleRecoveriesCompanion.insert({
+    required String id,
+    required String muscleGroupId,
+    this.isRecovered = const Value.absent(),
+    this.lastWorkoutDate = const Value.absent(),
+    this.recoveredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       muscleGroupId = Value(muscleGroupId);
+  static Insertable<MuscleRecovery> custom({
+    Expression<String>? id,
+    Expression<String>? muscleGroupId,
+    Expression<bool>? isRecovered,
+    Expression<DateTime>? lastWorkoutDate,
+    Expression<DateTime>? recoveredAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (muscleGroupId != null) 'muscle_group_id': muscleGroupId,
+      if (isRecovered != null) 'is_recovered': isRecovered,
+      if (lastWorkoutDate != null) 'last_workout_date': lastWorkoutDate,
+      if (recoveredAt != null) 'recovered_at': recoveredAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MuscleRecoveriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? muscleGroupId,
+    Value<bool>? isRecovered,
+    Value<DateTime?>? lastWorkoutDate,
+    Value<DateTime?>? recoveredAt,
+    Value<int>? rowid,
+  }) {
+    return MuscleRecoveriesCompanion(
+      id: id ?? this.id,
+      muscleGroupId: muscleGroupId ?? this.muscleGroupId,
+      isRecovered: isRecovered ?? this.isRecovered,
+      lastWorkoutDate: lastWorkoutDate ?? this.lastWorkoutDate,
+      recoveredAt: recoveredAt ?? this.recoveredAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (muscleGroupId.present) {
+      map['muscle_group_id'] = Variable<String>(muscleGroupId.value);
+    }
+    if (isRecovered.present) {
+      map['is_recovered'] = Variable<bool>(isRecovered.value);
+    }
+    if (lastWorkoutDate.present) {
+      map['last_workout_date'] = Variable<DateTime>(lastWorkoutDate.value);
+    }
+    if (recoveredAt.present) {
+      map['recovered_at'] = Variable<DateTime>(recoveredAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MuscleRecoveriesCompanion(')
+          ..write('id: $id, ')
+          ..write('muscleGroupId: $muscleGroupId, ')
+          ..write('isRecovered: $isRecovered, ')
+          ..write('lastWorkoutDate: $lastWorkoutDate, ')
+          ..write('recoveredAt: $recoveredAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2956,6 +3348,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $WorkoutHistoriesTable workoutHistories = $WorkoutHistoriesTable(
     this,
   );
+  late final $MuscleRecoveriesTable muscleRecoveries = $MuscleRecoveriesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2968,6 +3363,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     exerciseSeriesList,
     workoutSessions,
     workoutHistories,
+    muscleRecoveries,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3027,6 +3423,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('workout_histories', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'muscle_groups',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('muscle_recoveries', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -3074,6 +3477,29 @@ final class $$MuscleGroupsTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _sessionMuscleGroupsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MuscleRecoveriesTable, List<MuscleRecovery>>
+  _muscleRecoveriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.muscleRecoveries,
+    aliasName: $_aliasNameGenerator(
+      db.muscleGroups.id,
+      db.muscleRecoveries.muscleGroupId,
+    ),
+  );
+
+  $$MuscleRecoveriesTableProcessedTableManager get muscleRecoveriesRefs {
+    final manager = $$MuscleRecoveriesTableTableManager(
+      $_db,
+      $_db.muscleRecoveries,
+    ).filter((f) => f.muscleGroupId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _muscleRecoveriesRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -3131,6 +3557,31 @@ class $$MuscleGroupsTableFilterComposer
           }) => $$SessionMuscleGroupsTableFilterComposer(
             $db: $db,
             $table: $db.sessionMuscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> muscleRecoveriesRefs(
+    Expression<bool> Function($$MuscleRecoveriesTableFilterComposer f) f,
+  ) {
+    final $$MuscleRecoveriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.muscleRecoveries,
+      getReferencedColumn: (t) => t.muscleGroupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleRecoveriesTableFilterComposer(
+            $db: $db,
+            $table: $db.muscleRecoveries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3225,6 +3676,31 @@ class $$MuscleGroupsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> muscleRecoveriesRefs<T extends Object>(
+    Expression<T> Function($$MuscleRecoveriesTableAnnotationComposer a) f,
+  ) {
+    final $$MuscleRecoveriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.muscleRecoveries,
+      getReferencedColumn: (t) => t.muscleGroupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleRecoveriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.muscleRecoveries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MuscleGroupsTableTableManager
@@ -3240,7 +3716,10 @@ class $$MuscleGroupsTableTableManager
           $$MuscleGroupsTableUpdateCompanionBuilder,
           (MuscleGroup, $$MuscleGroupsTableReferences),
           MuscleGroup,
-          PrefetchHooks Function({bool sessionMuscleGroupsRefs})
+          PrefetchHooks Function({
+            bool sessionMuscleGroupsRefs,
+            bool muscleRecoveriesRefs,
+          })
         > {
   $$MuscleGroupsTableTableManager(_$AppDatabase db, $MuscleGroupsTable table)
     : super(
@@ -3293,40 +3772,66 @@ class $$MuscleGroupsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({sessionMuscleGroupsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (sessionMuscleGroupsRefs) db.sessionMuscleGroups,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (sessionMuscleGroupsRefs)
-                    await $_getPrefetchedData<
-                      MuscleGroup,
-                      $MuscleGroupsTable,
-                      SessionMuscleGroup
-                    >(
-                      currentTable: table,
-                      referencedTable: $$MuscleGroupsTableReferences
-                          ._sessionMuscleGroupsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$MuscleGroupsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).sessionMuscleGroupsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.muscleGroupId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                sessionMuscleGroupsRefs = false,
+                muscleRecoveriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (sessionMuscleGroupsRefs) db.sessionMuscleGroups,
+                    if (muscleRecoveriesRefs) db.muscleRecoveries,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (sessionMuscleGroupsRefs)
+                        await $_getPrefetchedData<
+                          MuscleGroup,
+                          $MuscleGroupsTable,
+                          SessionMuscleGroup
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MuscleGroupsTableReferences
+                              ._sessionMuscleGroupsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MuscleGroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sessionMuscleGroupsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.muscleGroupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (muscleRecoveriesRefs)
+                        await $_getPrefetchedData<
+                          MuscleGroup,
+                          $MuscleGroupsTable,
+                          MuscleRecovery
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MuscleGroupsTableReferences
+                              ._muscleRecoveriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MuscleGroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).muscleRecoveriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.muscleGroupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3343,7 +3848,10 @@ typedef $$MuscleGroupsTableProcessedTableManager =
       $$MuscleGroupsTableUpdateCompanionBuilder,
       (MuscleGroup, $$MuscleGroupsTableReferences),
       MuscleGroup,
-      PrefetchHooks Function({bool sessionMuscleGroupsRefs})
+      PrefetchHooks Function({
+        bool sessionMuscleGroupsRefs,
+        bool muscleRecoveriesRefs,
+      })
     >;
 typedef $$TrainingSessionsTableCreateCompanionBuilder =
     TrainingSessionsCompanion Function({
@@ -6379,6 +6887,343 @@ typedef $$WorkoutHistoriesTableProcessedTableManager =
       WorkoutHistory,
       PrefetchHooks Function({bool workoutSessionId, bool exerciseId})
     >;
+typedef $$MuscleRecoveriesTableCreateCompanionBuilder =
+    MuscleRecoveriesCompanion Function({
+      required String id,
+      required String muscleGroupId,
+      Value<bool> isRecovered,
+      Value<DateTime?> lastWorkoutDate,
+      Value<DateTime?> recoveredAt,
+      Value<int> rowid,
+    });
+typedef $$MuscleRecoveriesTableUpdateCompanionBuilder =
+    MuscleRecoveriesCompanion Function({
+      Value<String> id,
+      Value<String> muscleGroupId,
+      Value<bool> isRecovered,
+      Value<DateTime?> lastWorkoutDate,
+      Value<DateTime?> recoveredAt,
+      Value<int> rowid,
+    });
+
+final class $$MuscleRecoveriesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MuscleRecoveriesTable, MuscleRecovery> {
+  $$MuscleRecoveriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MuscleGroupsTable _muscleGroupIdTable(_$AppDatabase db) =>
+      db.muscleGroups.createAlias(
+        $_aliasNameGenerator(
+          db.muscleRecoveries.muscleGroupId,
+          db.muscleGroups.id,
+        ),
+      );
+
+  $$MuscleGroupsTableProcessedTableManager get muscleGroupId {
+    final $_column = $_itemColumn<String>('muscle_group_id')!;
+
+    final manager = $$MuscleGroupsTableTableManager(
+      $_db,
+      $_db.muscleGroups,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_muscleGroupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MuscleRecoveriesTableFilterComposer
+    extends Composer<_$AppDatabase, $MuscleRecoveriesTable> {
+  $$MuscleRecoveriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRecovered => $composableBuilder(
+    column: $table.isRecovered,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastWorkoutDate => $composableBuilder(
+    column: $table.lastWorkoutDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recoveredAt => $composableBuilder(
+    column: $table.recoveredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MuscleGroupsTableFilterComposer get muscleGroupId {
+    final $$MuscleGroupsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MuscleRecoveriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MuscleRecoveriesTable> {
+  $$MuscleRecoveriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRecovered => $composableBuilder(
+    column: $table.isRecovered,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastWorkoutDate => $composableBuilder(
+    column: $table.lastWorkoutDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recoveredAt => $composableBuilder(
+    column: $table.recoveredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MuscleGroupsTableOrderingComposer get muscleGroupId {
+    final $$MuscleGroupsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MuscleRecoveriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MuscleRecoveriesTable> {
+  $$MuscleRecoveriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRecovered => $composableBuilder(
+    column: $table.isRecovered,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastWorkoutDate => $composableBuilder(
+    column: $table.lastWorkoutDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recoveredAt => $composableBuilder(
+    column: $table.recoveredAt,
+    builder: (column) => column,
+  );
+
+  $$MuscleGroupsTableAnnotationComposer get muscleGroupId {
+    final $$MuscleGroupsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MuscleRecoveriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MuscleRecoveriesTable,
+          MuscleRecovery,
+          $$MuscleRecoveriesTableFilterComposer,
+          $$MuscleRecoveriesTableOrderingComposer,
+          $$MuscleRecoveriesTableAnnotationComposer,
+          $$MuscleRecoveriesTableCreateCompanionBuilder,
+          $$MuscleRecoveriesTableUpdateCompanionBuilder,
+          (MuscleRecovery, $$MuscleRecoveriesTableReferences),
+          MuscleRecovery,
+          PrefetchHooks Function({bool muscleGroupId})
+        > {
+  $$MuscleRecoveriesTableTableManager(
+    _$AppDatabase db,
+    $MuscleRecoveriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MuscleRecoveriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MuscleRecoveriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MuscleRecoveriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> muscleGroupId = const Value.absent(),
+                Value<bool> isRecovered = const Value.absent(),
+                Value<DateTime?> lastWorkoutDate = const Value.absent(),
+                Value<DateTime?> recoveredAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MuscleRecoveriesCompanion(
+                id: id,
+                muscleGroupId: muscleGroupId,
+                isRecovered: isRecovered,
+                lastWorkoutDate: lastWorkoutDate,
+                recoveredAt: recoveredAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String muscleGroupId,
+                Value<bool> isRecovered = const Value.absent(),
+                Value<DateTime?> lastWorkoutDate = const Value.absent(),
+                Value<DateTime?> recoveredAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MuscleRecoveriesCompanion.insert(
+                id: id,
+                muscleGroupId: muscleGroupId,
+                isRecovered: isRecovered,
+                lastWorkoutDate: lastWorkoutDate,
+                recoveredAt: recoveredAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MuscleRecoveriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({muscleGroupId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (muscleGroupId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.muscleGroupId,
+                                referencedTable:
+                                    $$MuscleRecoveriesTableReferences
+                                        ._muscleGroupIdTable(db),
+                                referencedColumn:
+                                    $$MuscleRecoveriesTableReferences
+                                        ._muscleGroupIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MuscleRecoveriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MuscleRecoveriesTable,
+      MuscleRecovery,
+      $$MuscleRecoveriesTableFilterComposer,
+      $$MuscleRecoveriesTableOrderingComposer,
+      $$MuscleRecoveriesTableAnnotationComposer,
+      $$MuscleRecoveriesTableCreateCompanionBuilder,
+      $$MuscleRecoveriesTableUpdateCompanionBuilder,
+      (MuscleRecovery, $$MuscleRecoveriesTableReferences),
+      MuscleRecovery,
+      PrefetchHooks Function({bool muscleGroupId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6397,4 +7242,6 @@ class $AppDatabaseManager {
       $$WorkoutSessionsTableTableManager(_db, _db.workoutSessions);
   $$WorkoutHistoriesTableTableManager get workoutHistories =>
       $$WorkoutHistoriesTableTableManager(_db, _db.workoutHistories);
+  $$MuscleRecoveriesTableTableManager get muscleRecoveries =>
+      $$MuscleRecoveriesTableTableManager(_db, _db.muscleRecoveries);
 }

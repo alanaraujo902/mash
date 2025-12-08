@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
@@ -94,6 +95,18 @@ class WorkoutHistories extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('MuscleRecovery')
+class MuscleRecoveries extends Table {
+  TextColumn get id => text()();
+  TextColumn get muscleGroupId => text().references(MuscleGroups, #id, onDelete: KeyAction.cascade)();
+  BoolColumn get isRecovered => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get lastWorkoutDate => dateTime().nullable()(); // Data do último treino
+  DateTimeColumn get recoveredAt => dateTime().nullable()(); // Data que o usuário marcou recuperação
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   MuscleGroups,
   TrainingSessions,
@@ -102,6 +115,7 @@ class WorkoutHistories extends Table {
   ExerciseSeriesList,
   WorkoutSessions,
   WorkoutHistories,
+  MuscleRecoveries,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -312,6 +326,63 @@ class AppDatabase extends _$AppDatabase {
     }
 
     return result;
+  }
+
+  // --- MÉTODOS DE RECUPERAÇÃO ---
+
+  Future<MuscleRecovery?> getRecoveryStatus(String muscleGroupId) {
+    return (select(muscleRecoveries)
+          ..where((tbl) => tbl.muscleGroupId.equals(muscleGroupId)))
+        .getSingleOrNull();
+  }
+
+  Future<void> setMuscleFatigued(String muscleGroupId) async {
+    // Verifica se já existe registro
+    final existing = await getRecoveryStatus(muscleGroupId);
+    final now = DateTime.now();
+
+    if (existing != null) {
+      await update(muscleRecoveries).replace(
+        existing.copyWith(
+          isRecovered: false,
+          lastWorkoutDate: Value(now),
+        ),
+      );
+    } else {
+      await into(muscleRecoveries).insert(
+        MuscleRecovery(
+          id: const Uuid().v4(),
+          muscleGroupId: muscleGroupId,
+          isRecovered: false,
+          lastWorkoutDate: now,
+          recoveredAt: null,
+        ),
+      );
+    }
+  }
+
+  Future<void> setMuscleRecovered(String muscleGroupId, DateTime recoveryDate) async {
+    final existing = await getRecoveryStatus(muscleGroupId);
+
+    if (existing != null) {
+      await update(muscleRecoveries).replace(
+        existing.copyWith(
+          isRecovered: true,
+          recoveredAt: Value(recoveryDate),
+        ),
+      );
+    } else {
+      // Caso raro onde não havia registro anterior
+      await into(muscleRecoveries).insert(
+        MuscleRecovery(
+          id: const Uuid().v4(),
+          muscleGroupId: muscleGroupId,
+          isRecovered: true,
+          lastWorkoutDate: null,
+          recoveredAt: recoveryDate,
+        ),
+      );
+    }
   }
 
   // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)

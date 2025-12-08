@@ -5,6 +5,7 @@ import 'providers/muscle_group_provider.dart';
 import 'providers/training_session_provider.dart';
 import 'providers/exercise_provider.dart';
 import 'providers/workout_provider.dart';
+import 'providers/recovery_provider.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -34,6 +35,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => WorkoutProvider(database),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => RecoveryProvider(database)..loadRecoveryData(),
         ),
       ],
       child: MaterialApp(
