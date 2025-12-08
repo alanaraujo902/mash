@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-/// Widget que aplica borda neon e brilho
+/// Widget que aplica borda gradiente neon sólida de 2px e brilho correspondente
 class NeonCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? margin;
@@ -31,40 +31,51 @@ class NeonCard extends StatelessWidget {
       );
     }
 
-    // Estilo Neon com Borda SÓLIDA
     return Container(
       margin: margin,
+      // 1. Camada de Sombra/Brilho (O Glow Gradiente)
       decoration: BoxDecoration(
-        color: AppColors.neonCard, // Cor de fundo do cartão
         borderRadius: BorderRadius.circular(borderRadius),
-
-        // --- Borda Sólida de 2px ---
-        border: Border.all(
-          color: AppColors.neonPurple, // Cor sólida (Roxo do brilho)
-          width: 2.0, // Espessura sólida de 2 pixels
-        ),
-        // ----------------------------
-
         boxShadow: [
-          // Sombra neon roxa (brilho de fundo)
+          // Sombra Roxa (Vem do topo/esquerda)
           BoxShadow(
             color: AppColors.neonPurple.withOpacity(0.5),
-            blurRadius: 15,
-            offset: const Offset(0, 0), // Centralizado para brilhar em volta tudo
-            spreadRadius: 1,
+            blurRadius: 16,
+            offset: const Offset(-2, -2),
+            spreadRadius: 0,
           ),
-          // Sombra secundária para profundidade
+          // Sombra Verde (Vem de baixo/direita)
           BoxShadow(
-            color: AppColors.neonPurple.withOpacity(0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
+            color: AppColors.neonGreen.withOpacity(0.5),
+            blurRadius: 16,
+            offset: const Offset(2, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Padding(
-        padding: padding ?? const EdgeInsets.all(16),
-        child: child,
+      child: Container(
+        // 2. Camada da Borda Gradiente (O fundo colorido que vira a borda)
+        padding: const EdgeInsets.all(2.0), // AQUI ESTÁ A ESPESSURA DA BORDA SÓLIDA
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(borderRadius),
+          gradient: const LinearGradient(
+            colors: [AppColors.neonPurple, AppColors.neonGreen],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Container(
+          // 3. Camada do Conteúdo (O miolo escuro)
+          decoration: BoxDecoration(
+            color: AppColors.neonCard,
+            // Subtraímos a espessura da borda para o radius ficar perfeito internamente
+            borderRadius: BorderRadius.circular(borderRadius - 2),
+          ),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(16),
+            child: child,
+          ),
+        ),
       ),
     );
   }
