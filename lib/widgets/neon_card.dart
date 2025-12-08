@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-/// Widget que aplica borda gradiente neon aos cards quando o tema neon estiver ativo
+/// Widget que aplica borda neon e brilho
 class NeonCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? margin;
@@ -31,55 +31,40 @@ class NeonCard extends StatelessWidget {
       );
     }
 
-    // Estilo Neon com borda sólida gradiente de 2px + sombra
+    // Estilo Neon com Borda SÓLIDA
     return Container(
       margin: margin,
       decoration: BoxDecoration(
+        color: AppColors.neonCard, // Cor de fundo do cartão
         borderRadius: BorderRadius.circular(borderRadius),
+
+        // --- Borda Sólida de 2px ---
+        border: Border.all(
+          color: AppColors.neonPurple, // Cor sólida (Roxo do brilho)
+          width: 2.0, // Espessura sólida de 2 pixels
+        ),
+        // ----------------------------
+
         boxShadow: [
-          // Sombra neon roxa (topo esquerdo)
+          // Sombra neon roxa (brilho de fundo)
           BoxShadow(
             color: AppColors.neonPurple.withOpacity(0.5),
             blurRadius: 15,
-            offset: const Offset(-4, -4),
+            offset: const Offset(0, 0), // Centralizado para brilhar em volta tudo
             spreadRadius: 1,
           ),
-          // Sombra neon verde (baixo direito)
-          BoxShadow(
-            color: AppColors.neonGreen.withOpacity(0.5),
-            blurRadius: 15,
-            offset: const Offset(4, 4),
-            spreadRadius: 1,
-          ),
-          // Sombra geral para profundidade
+          // Sombra secundária para profundidade
           BoxShadow(
             color: AppColors.neonPurple.withOpacity(0.2),
-            blurRadius: 20,
+            blurRadius: 30,
+            offset: const Offset(0, 4),
             spreadRadius: 2,
           ),
         ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          // Borda gradiente roxo→verde alinhada com o glow (2px)
-          gradient: const LinearGradient(
-            colors: [AppColors.neonPurple, AppColors.neonGreen],
-            begin: Alignment.topLeft, // Alinhado com sombra roxa
-            end: Alignment.bottomRight, // Alinhado com sombra verde
-          ),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(2), // Linha sólida de 2 pixels (cria a borda)
-          decoration: BoxDecoration(
-            color: AppColors.neonCard,
-            borderRadius: BorderRadius.circular(borderRadius - 2),
-          ),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(16),
-            child: child,
-          ),
-        ),
+      child: Padding(
+        padding: padding ?? const EdgeInsets.all(16),
+        child: child,
       ),
     );
   }

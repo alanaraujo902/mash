@@ -201,10 +201,12 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _groups.length,
+                // --- ALTERAÇÃO: Linha sólida de 2px com cor neon roxa ---
                 separatorBuilder: (_, __) => Divider(
-                  height: 1,
+                  height: 2, // Altura total do widget divisor
+                  thickness: 2, // Espessura da linha desenhada
                   color: widget.isNeon
-                      ? AppColors.neonPurple.withOpacity(0.3)
+                      ? AppColors.neonPurple // Cor sólida do neon
                       : null,
                 ),
                 itemBuilder: (context, index) {
