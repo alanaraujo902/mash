@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:drift/drift.dart';
 import '../database/database.dart';
 
 class WorkoutProvider extends ChangeNotifier {
@@ -80,7 +81,7 @@ class WorkoutProvider extends ChangeNotifier {
   Future<void> finishWorkout(int completedSeries) async {
     if (_currentWorkout != null && _currentExercise != null) {
       final updated = _currentWorkout!.copyWith(
-        completedAt: _currentWorkout!.completedAt ?? DateTime.now(),
+        completedAt: Value(_currentWorkout!.completedAt ?? DateTime.now()),
         isCompleted: true,
       );
 

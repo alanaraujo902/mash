@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:drift/drift.dart';
 import '../database/database.dart';
 
 class TrainingSessionProvider extends ChangeNotifier {
@@ -78,7 +79,7 @@ class TrainingSessionProvider extends ChangeNotifier {
     final session = _trainingSessions.firstWhere((s) => s.id == id);
     final updated = session.copyWith(
       name: name,
-      description: description ?? session.description,
+      description: Value(description ?? session.description),
       updatedAt: DateTime.now(),
     );
     await database.updateTrainingSession(updated);
