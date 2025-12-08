@@ -7,6 +7,8 @@ import 'providers/exercise_provider.dart';
 import 'providers/workout_provider.dart';
 import 'providers/recovery_provider.dart';
 import 'providers/workout_timer_provider.dart';
+import 'providers/theme_provider.dart';
+import 'utils/app_colors.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -43,27 +45,49 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => WorkoutTimerProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
       ],
-      child: MaterialApp(
-        title: 'Muscle App',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
-            brightness: Brightness.light,
-          ),
-          fontFamily: 'Roboto',
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
-            brightness: Brightness.dark,
-          ),
-          fontFamily: 'Roboto',
-        ),
-        themeMode: ThemeMode.system,
-        home: const HomeScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          final isNeon = themeProvider.isNeon;
+
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Muscle App',
+            themeMode: themeProvider.themeMode,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF6366F1),
+                brightness: Brightness.light,
+              ),
+              fontFamily: 'Roboto',
+            ),
+            darkTheme: isNeon
+                ? ThemeData(
+                    useMaterial3: true,
+                    scaffoldBackgroundColor: AppColors.neonBackground,
+                    cardColor: AppColors.neonCard,
+                    colorScheme: const ColorScheme.dark(
+                      primary: AppColors.neonPurple,
+                      secondary: AppColors.neonGreen,
+                      surface: AppColors.neonCard,
+                    ),
+                    fontFamily: 'Roboto',
+                  )
+                : ThemeData(
+                    useMaterial3: true,
+                    colorScheme: ColorScheme.fromSeed(
+                      seedColor: const Color(0xFF6366F1),
+                      brightness: Brightness.dark,
+                    ),
+                    fontFamily: 'Roboto',
+                  ),
+            home: const HomeScreen(),
+          );
+        },
       ),
     );
   }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
+import '../providers/theme_provider.dart';
 import '../database/database.dart';
+import '../utils/app_colors.dart';
+import '../widgets/neon_card.dart';
 import 'create_training_session_screen.dart';
 import 'training_detail_screen.dart';
 
@@ -56,16 +59,91 @@ class TrainingSessionsScreen extends StatelessWidget {
     nameController.dispose();
   }
 
+  // Novo método para mostrar o diálogo de tema
+  void _showThemeSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.brightness_auto),
+                title: const Text('Tema do Sistema'),
+                trailing: themeProvider.currentTheme == ThemeType.dark &&
+                        themeProvider.themeMode == ThemeMode.system
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  themeProvider.setSystemTheme();
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.light_mode),
+                title: const Text('Tema Claro'),
+                trailing: themeProvider.currentTheme == ThemeType.light
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  themeProvider.setTheme(ThemeType.light);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.dark_mode),
+                title: const Text('Tema Escuro'),
+                trailing: themeProvider.currentTheme == ThemeType.dark &&
+                        !themeProvider.isNeon
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  themeProvider.setTheme(ThemeType.dark);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.color_lens,
+                  color: AppColors.neonPurple,
+                ),
+                title: const Text('Cyber Neon'),
+                trailing: themeProvider.currentTheme == ThemeType.neon
+                    ? Icon(Icons.check, color: AppColors.neonGreen)
+                    : null,
+                onTap: () {
+                  themeProvider.setTheme(ThemeType.neon);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuração de Treinos'),
         elevation: 0,
+        actions: [
+          // ÍCONE DE CONFIGURAÇÃO DE TEMA
+          IconButton(
+            icon: const Icon(Icons.brightness_6), // Ícone meio sol/meio lua
+            tooltip: 'Alterar Tema',
+            onPressed: () => _showThemeSettings(context),
+          ),
+        ],
       ),
-      body: Consumer2<TrainingSessionProvider, MuscleGroupProvider>(
-        builder: (context, trainingProvider, muscleProvider, _) {
+      body: Consumer3<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider>(
+        builder: (context, trainingProvider, muscleProvider, themeProvider, _) {
           final sessions = trainingProvider.trainingSessions;
+          final isNeon = themeProvider.isNeon;
 
           if (sessions.isEmpty) {
             return Center(
@@ -99,8 +177,10 @@ class TrainingSessionsScreen extends StatelessWidget {
             itemCount: sessions.length,
             itemBuilder: (context, index) {
               final session = sessions[index];
-              return Card(
+              return NeonCard(
+                isNeon: isNeon,
                 margin: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.zero,
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
                   title: Text(

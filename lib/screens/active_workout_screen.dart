@@ -40,29 +40,49 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     // Configura tempo de início real para o banco de dados
     _groupStartTime = DateTime.now();
 
-    // 1. Inicia o Timer Geral (Via Provider)
-    // O microtask garante que o build já ocorreu antes de chamar o provider
+    // 1. Inicia/Garante que o Timer Geral esteja rodando
     Future.microtask(() {
       context.read<WorkoutTimerProvider>().startGlobalTimer();
     });
 
-    // 2. Inicia o Timer Local (Desta tela)
+    // 2. RECUPERA O TEMPO SALVO (Correção do problema)
+    // Buscamos no provider se já existe um tempo para este grupo
+    final savedDuration = context
+        .read<WorkoutTimerProvider>()
+        .getGroupDuration(widget.sessionMuscleGroup.id);
+
+    _groupDuration = savedDuration;
+
+    // 3. Inicia o Timer Local
     _startGroupTimer();
   }
 
   void _startGroupTimer() {
+    // Cancela anterior se houver (segurança)
+    _groupTimer?.cancel();
+
     _groupTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
+          // Incrementa localmente para a UI atualizar
           _groupDuration += const Duration(seconds: 1);
         });
+
+        // SALVA NO PROVIDER A CADA SEGUNDO
+        // Isso garante que se o usuário sair, o valor está salvo
+        context.read<WorkoutTimerProvider>().updateGroupDuration(
+              widget.sessionMuscleGroup.id,
+              _groupDuration,
+            );
       }
     });
   }
 
   @override
   void dispose() {
-    _groupTimer?.cancel(); // Cancela apenas o timer local ao sair da tela
+    // Ao sair da tela, paramos O TIMER LOCAL (o do provider não roda sozinho, é só memória)
+    // Isso cumpre o requisito: "parado quando eu der play em outro grupo"
+    _groupTimer?.cancel();
     super.dispose();
   }
 
