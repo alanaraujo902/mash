@@ -38,6 +38,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // ignore: unused_field
   late DateTime _groupStartTime;
 
+  // --- NOVO: Variáveis para o Timer de Descanso Inline ---
+  Timer? _restTimer;
+  int _restSecondsRemaining = 0;
+  bool get _isResting => _restSecondsRemaining > 0;
+
   @override
   void initState() {
     super.initState();
@@ -84,11 +89,45 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     });
   }
 
+  // --- NOVO: Lógica do Timer de Descanso ---
+  void _startRestTimer(int seconds) {
+    _restTimer?.cancel();
+    setState(() {
+      _restSecondsRemaining = seconds;
+    });
+
+    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_restSecondsRemaining > 0) {
+            _restSecondsRemaining--;
+          } else {
+            _stopRestTimer();
+          }
+        });
+      }
+    });
+  }
+
+  void _stopRestTimer() {
+    _restTimer?.cancel();
+    setState(() {
+      _restSecondsRemaining = 0;
+    });
+  }
+
+  void _addRestTime(int seconds) {
+    setState(() {
+      _restSecondsRemaining += seconds;
+    });
+  }
+
   @override
   void dispose() {
     // Ao sair da tela, paramos O TIMER LOCAL (o do provider não roda sozinho, é só memória)
     // Isso cumpre o requisito: "parado quando eu der play em outro grupo"
     _groupTimer?.cancel();
+    _restTimer?.cancel(); // Cancelar timer de descanso ao sair
     super.dispose();
   }
 
@@ -119,6 +158,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     final isAllDone = await provider.checkAllExercisesCompleted(widget.sessionMuscleGroup.id);
 
     if (isAllDone && mounted) {
+      // Se acabou tudo, para o descanso também
+      _stopRestTimer();
       _showCompletionDialog();
     }
   }
@@ -204,18 +245,19 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           // --- BARRA DE TIMERS ---
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            // Animação de altura suave se o timer de descanso mudar o tamanho do container (opcional)
             decoration: isNeon
                 ? BoxDecoration(
                     color: AppColors.neonCard,
                     border: Border(
                       bottom: BorderSide(
-                        color: AppColors.neonPurple,
+                        color: _isResting ? Colors.blueAccent : AppColors.neonPurple, // Muda cor se descansando
                         width: 2,
                       ),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.neonPurple.withOpacity(0.3),
+                        color: (_isResting ? Colors.blueAccent : AppColors.neonPurple).withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -232,61 +274,43 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // Timer do Grupo (Local)
-                Column(
-                  children: [
-                    const Text(
-                      'TEMPO GRUPO',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatDuration(_groupDuration),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isNeon
-                            ? AppColors.neonGreen
-                            : Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
+                // 1. Timer do Grupo (Esquerda)
+                _buildTimerColumn(
+                  context, 
+                  'TEMPO GRUPO', 
+                  _formatDuration(_groupDuration), 
+                  isNeon ? AppColors.neonGreen : null,
+                  isNeon
                 ),
-                // Divisor Vertical
-                Container(
-                  height: 30,
-                  width: 1,
-                  color: Colors.grey.withOpacity(0.5),
+
+                // 2. MEIO: Ou Divisor Ou Timer de Descanso
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: _isResting
+                        ? _buildRestTimerWidget(isNeon) // <--- MOSTRA O TIMER
+                        : Container( // <--- MOSTRA O DIVISOR
+                            key: const ValueKey('divider'),
+                            height: 30,
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: 1,
+                              color: Colors.grey.withOpacity(0.5),
+                            ),
+                          ),
+                  ),
                 ),
-                // Timer Geral (Global)
-                Column(
-                  children: [
-                    const Text(
-                      'TEMPO TOTAL',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      globalTime,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isNeon
-                            ? AppColors.neonPurple
-                            : Theme.of(context).primaryColor,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
+
+                // 3. Timer Total (Direita)
+                _buildTimerColumn(
+                  context, 
+                  'TEMPO TOTAL', 
+                  globalTime, 
+                  isNeon ? AppColors.neonPurple : null,
+                  isNeon
                 ),
               ],
             ),
@@ -304,8 +328,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         itemBuilder: (context, index) {
                           return _ExerciseItem(
                             exercise: _exercises[index],
-                            onCheckCompletion:
-                                _checkOverallCompletion, // Passando o callback
+                            onCheckCompletion: _checkOverallCompletion,
+                            // Passamos a função para iniciar o timer
+                            onStartRestTimer: (seconds) {
+                              _startRestTimer(seconds);
+                              _checkOverallCompletion();
+                            },
                             isNeon: isNeon,
                           );
                         },
@@ -316,100 +344,111 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       ),
     );
   }
-}
 
-// --- WIDGET DO CRONÔMETRO (NOVO) ---
-class RestTimerDialog extends StatefulWidget {
-  final int initialSeconds;
-
-  const RestTimerDialog({Key? key, required this.initialSeconds}) : super(key: key);
-
-  @override
-  State<RestTimerDialog> createState() => _RestTimerDialogState();
-}
-
-class _RestTimerDialogState extends State<RestTimerDialog> {
-  late Timer _timer;
-  late int _remainingSeconds;
-
-  @override
-  void initState() {
-    super.initState();
-    _remainingSeconds = widget.initialSeconds;
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingSeconds > 0) {
-        setState(() {
-          _remainingSeconds--;
-        });
-      } else {
-        _timer.cancel();
-        Navigator.of(context).pop(); // Fecha o diálogo automaticamente
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    if (_timer.isActive) _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Row(
-        children: const [
-          Icon(Icons.timer, color: Colors.blueAccent),
-          SizedBox(width: 10),
-          Text('Descanso'),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+  // Widget auxiliar para as colunas de tempo (Grupo e Total)
+  Widget _buildTimerColumn(BuildContext context, String label, String time, Color? color, bool isNeon) {
+    return SizedBox(
+      width: 80, // Largura fixa para evitar pulos no layout
+      child: Column(
         children: [
           Text(
-            '$_remainingSeconds',
+            label,
             style: const TextStyle(
-              fontSize: 64,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            time,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color ?? Theme.of(context).colorScheme.onPrimaryContainer,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget do Timer de Descanso (A caixinha do meio)
+  Widget _buildRestTimerWidget(bool isNeon) {
+    return Container(
+      key: const ValueKey('restTimer'),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'DESCANSO',
+            style: TextStyle(
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               color: Colors.blueAccent,
             ),
           ),
-          const Text('segundos restantes'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Botão Pular
+              InkWell(
+                onTap: _stopRestTimer,
+                child: const Icon(Icons.close, size: 16, color: Colors.grey),
+              ),
+              const SizedBox(width: 8),
+
+              // O Contador
+              Text(
+                '$_restSecondsRemaining',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              const Text('s', style: TextStyle(fontSize: 12, color: Colors.blueAccent)),
+
+              const SizedBox(width: 8),
+
+              // Botão +10s
+              InkWell(
+                onTap: () => _addRestTime(10),
+                child: const Icon(Icons.add_circle_outline, size: 16, color: Colors.blueAccent),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            // Adiciona +10 segundos
-            setState(() {
-              _remainingSeconds += 10;
-            });
-          },
-          child: const Text('+10s'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Pular / Continuar'),
-        ),
-      ],
     );
   }
 }
 
+// Removido: RestTimerDialog (Não é mais usado)
+
 class _ExerciseItem extends StatefulWidget {
   final Exercise exercise;
-  final VoidCallback onCheckCompletion; // NOVO CALLBACK
+  final VoidCallback onCheckCompletion;
+  final Function(int) onStartRestTimer; // NOVO CALLBACK COM INTEIRO
   final bool isNeon;
 
   const _ExerciseItem({
     Key? key,
     required this.exercise,
-    required this.onCheckCompletion, // NOVO
+    required this.onCheckCompletion,
+    required this.onStartRestTimer, // REQUERIDO
     required this.isNeon,
   }) : super(key: key);
 
@@ -444,16 +483,7 @@ class _ExerciseItemState extends State<_ExerciseItem> {
     }
   }
 
-  // Função para abrir o timer
-  void _showRestTimer() {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // O usuário deve clicar no botão para fechar
-      builder: (context) => RestTimerDialog(
-        initialSeconds: widget.exercise.intervalSeconds,
-      ),
-    );
-  }
+  // Função interna removida, agora chamamos o callback do pai
 
   @override
   Widget build(BuildContext context) {
@@ -486,13 +516,10 @@ class _ExerciseItemState extends State<_ExerciseItem> {
             Column(
               children: _series.map((serie) => _SeriesRow(
                 serie: serie,
-                isUnilateral: widget.exercise.isUnilateral, // <--- PASSAR AQUI
-                // Passamos a função do timer e verificação para a linha
+                isUnilateral: widget.exercise.isUnilateral, 
                 onSeriesCompleted: () {
-                  // 1. Mostra o timer
-                  _showRestTimer();
-                  // 2. Verifica se o treino todo acabou
-                  widget.onCheckCompletion();
+                  // Ao completar a série, iniciamos o timer passando o tempo configurado
+                  widget.onStartRestTimer(widget.exercise.intervalSeconds);
                 },
                 onSave: () => _loadData(),
               )).toList(),
