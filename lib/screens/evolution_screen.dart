@@ -320,24 +320,25 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 
-  // --- NOVO DESIGN PARA DETALHES DO EXERCÍCIO ---
-  // Barra = Volume Load | Texto Verde em cima = Carga Máxima
+  // --- GRÁFICO DETALHADO POR EXERCÍCIO (Volume + Carga) ---
   Widget _buildExerciseDetailChart(bool isNeon) {
     final barColor =
         isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
     final maxWeightColor =
-        isNeon ? AppColors.neonGreen : const Color(0xFF00C853); // Verde forte
+        isNeon ? AppColors.neonGreen : const Color(0xFF00C853); // Verde
     final gridColor = isNeon ? Colors.white10 : Colors.grey.withOpacity(0.2);
     final textColor = isNeon ? Colors.grey[400] : Colors.black54;
+    final volumeTextColor = isNeon ? Colors.white : Colors.black87;
 
-    // Calcular máximo para dar respiro ao texto em cima da barra
+    // Calcular máximo
     double maxVolume = 0;
     for (var d in _chartData) {
       final v = (d['volume'] as num).toDouble();
       if (v > maxVolume) maxVolume = v;
     }
-    // Aumentamos o teto em 30% para caber o texto "90kg" sem cortar
-    double maxY = (maxVolume == 0 ? 100 : maxVolume) * 1.3;
+
+    // Aumentamos o teto em 50% (1.5) para caber o texto longo na vertical
+    double maxY = (maxVolume == 0 ? 100 : maxVolume) * 1.5;
 
     return BarChart(
       BarChartData(
@@ -368,7 +369,6 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 if (value == 0) return const Text('');
-                // Exibe Volume Load no eixo Y (ex: 1.2k)
                 if (value >= 1000) {
                   return Text(
                     '${(value / 1000).toStringAsFixed(1)}k',
@@ -395,27 +395,37 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
         ),
         borderData: FlBorderData(show: false),
 
-        // AQUI ESTÁ A MÁGICA: Usar Tooltips para desenhar o texto estático
+        // CONFIGURAÇÃO DOS LABELS VERTICAIS (Volume + Carga)
         barTouchData: BarTouchData(
-          enabled: false, // Desabilita interação de toque padrão para focar no visual estático
+          enabled: false,
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => Colors.transparent, // Fundo transparente
+            getTooltipColor: (_) => Colors.transparent,
             tooltipPadding: EdgeInsets.zero,
-            tooltipMargin: 4, // Espaço entre a barra e o texto
+            tooltipMargin: 5,
+            rotateAngle: -90, // Texto Vertical
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              // Recupera o peso original usando o índice do grupo (eixo X)
+              // Recupera o peso original
               final weight = (_chartData[group.x.toInt()]['weight'] as num);
+              // Recupera o volume da barra
+              final volume = rod.toY.toInt();
 
               return BarTooltipItem(
-                '${weight.toStringAsFixed(1).replaceAll('.0', '')}kg',
+                '$volume ', // Volume por extenso
                 TextStyle(
-                  color: maxWeightColor,
+                  color: volumeTextColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  shadows: isNeon
-                      ? [Shadow(color: maxWeightColor, blurRadius: 4)]
-                      : null,
+                  fontSize: 11,
                 ),
+                children: [
+                  TextSpan(
+                    text: '(${weight.toStringAsFixed(0)}kg)', // Carga em Verde
+                    style: TextStyle(
+                      color: maxWeightColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -426,8 +436,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
 
           return BarChartGroupData(
             x: entry.key,
-            // Importante: showingTooltipIndicators: [0] força o tooltip aparecer sempre
-            showingTooltipIndicators: [0],
+            showingTooltipIndicators: [0], // Força mostrar sempre
             barRods: [
               BarChartRodData(
                 toY: volume,
@@ -444,10 +453,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                     const BorderRadius.vertical(top: Radius.circular(4)),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
-                  toY: maxY, // Fundo cinza claro até o topo (opcional, ajuda a visualizar escala)
-                  color: isNeon
-                      ? Colors.white.withOpacity(0.02)
-                      : Colors.grey.withOpacity(0.05),
+                  toY: maxY,
+                  color: isNeon ? Colors.white.withOpacity(0.02) : Colors.grey.withOpacity(0.05),
                 ),
               ),
             ],
@@ -457,17 +464,21 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 
-  // --- GRÁFICO DE GRUPO MUSCULAR (Soma Total - Mantido igual) ---
+  // --- GRÁFICO DE BARRAS (Volume Load por Grupo) ---
   Widget _buildVolumeBarChart(bool isNeon) {
-    final barColor = isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
+    final barColor =
+        isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
     final gridColor = isNeon ? Colors.white10 : Colors.grey.withOpacity(0.2);
     final textColor = isNeon ? Colors.grey[400] : Colors.black54;
+    final valColor = isNeon ? AppColors.neonGreen : Colors.black87;
+
+    // Aumentamos o teto em 50% (1.5) para dar espaço ao texto vertical
+    double maxVal = _getMaxVolumeLoad() * 1.5;
 
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        // Adiciona 20% de respiro no topo
-        maxY: _getMaxVolumeLoad() * 1.2,
+        maxY: maxVal,
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -493,7 +504,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
               reservedSize: 40, // Aumentado para caber números como "10k"
               getTitlesWidget: (value, meta) {
                 if (value == 0) return const Text('');
-                // Formatação compacta (ex: 1200 -> 1.2k)
+                // Eixo Y continua abreviado para não poluir
                 if (value >= 1000) {
                   return Text(
                     '${(value / 1000).toStringAsFixed(1)}k',
@@ -519,12 +530,34 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
           ),
         ),
         borderData: FlBorderData(show: false),
+
+        // CONFIGURAÇÃO DOS LABELS VERTICAIS
+        barTouchData: BarTouchData(
+          enabled: false, // Desabilita o clique para focar na visualização fixa
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => Colors.transparent, // Fundo transparente
+            tooltipPadding: EdgeInsets.zero,
+            tooltipMargin: 5, // Distância do topo da barra
+            rotateAngle: -90, // Gira o texto 90 graus anti-horário (Vertical)
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                rod.toY.toInt().toString(), // Número inteiro completo (ex: 12500)
+                TextStyle(
+                  color: valColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              );
+            },
+          ),
+        ),
+
         barGroups: _chartData.asMap().entries.map((entry) {
-          // Aqui pegamos 'volume' (que agora é double)
-          final double val = entry.value['volume'] as double;
+          final double val = (entry.value['volume'] as num).toDouble();
 
           return BarChartGroupData(
             x: entry.key,
+            showingTooltipIndicators: [0], // Força mostrar o texto sempre
             barRods: [
               BarChartRodData(
                 toY: val,
@@ -537,38 +570,30 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                     : null,
                 color: isNeon ? null : barColor,
                 width: 16,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(4)),
+                // Adicionando um fundo bem sutil para a barra, ajuda na noção de escala
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: maxVal,
+                  color: isNeon ? Colors.white.withOpacity(0.02) : Colors.grey.withOpacity(0.05),
+                ),
               ),
             ],
-            // Aqui adicionamos tooltip ao tocar apenas
           );
         }).toList(),
-        barTouchData: BarTouchData(
-          enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => isNeon ? AppColors.neonCard : Colors.blueGrey,
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              return BarTooltipItem(
-                '${rod.toY.round()} kg',
-                TextStyle(
-                  color: isNeon ? AppColors.neonGreen : Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            },
-          ),
-        ),
       ),
     );
   }
 
-  // Helper atualizado para pegar o máximo do novo formato de dados
+  // Atualizar para garantir que o maxVal nunca seja zero para evitar erro de renderização
   double _getMaxVolumeLoad() {
     double max = 0;
     for (var item in _chartData) {
-      final val = item['volume'] as double;
+      final val = (item['volume'] as num).toDouble();
       if (val > max) max = val;
     }
+    // Se for 0, retorna 100 para o gráfico não quebrar e ter uma escala mínima
     return max == 0 ? 100 : max;
   }
 }
