@@ -3,6 +3,39 @@ import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart';
 import '../database/database.dart';
 
+// Classe auxiliar para facilitar a exibição na UI
+class WorkoutSessionHistoryDTO {
+  final String sessionId;
+  final DateTime date;
+  final String sessionName; // Ex: "Treino A"
+  final String groupName;   // Ex: "Peito"
+  final List<WorkoutExerciseHistoryDTO> exercises;
+
+  WorkoutSessionHistoryDTO({
+    required this.sessionId,
+    required this.date,
+    required this.sessionName,
+    required this.groupName,
+    required this.exercises,
+  });
+}
+
+class WorkoutExerciseHistoryDTO {
+  final String exerciseName;
+  final int seriesCount;
+  final double maxWeight;
+  final double totalVolume;
+  final List<String> setDetails; // <--- NOVO CAMPO
+
+  WorkoutExerciseHistoryDTO({
+    required this.exerciseName,
+    required this.seriesCount,
+    required this.maxWeight,
+    required this.totalVolume,
+    required this.setDetails, // <--- NOVO
+  });
+}
+
 class WorkoutProvider extends ChangeNotifier {
   final AppDatabase database;
   WorkoutSession? _currentWorkout;
@@ -113,5 +146,82 @@ class WorkoutProvider extends ChangeNotifier {
     _isIntervalActive = false;
     _remainingIntervalSeconds = 0;
     notifyListeners();
+  }
+
+  // --- NOVO MÉTODO: BUSCAR HISTÓRICO COMPLETO ---
+  Future<List<WorkoutSessionHistoryDTO>> getFullHistory() async {
+    // 1. Busca todas as sessões de treino concluídas (WorkoutSessions)
+    // Precisamos fazer joins para pegar os nomes
+    final query = database.select(database.workoutSessions).join([
+      innerJoin(
+        database.trainingSessions,
+        database.trainingSessions.id.equalsExp(database.workoutSessions.trainingSessionId),
+      ),
+      innerJoin(
+        database.sessionMuscleGroups,
+        database.sessionMuscleGroups.id.equalsExp(database.workoutSessions.sessionMuscleGroupId),
+      ),
+      innerJoin(
+        database.muscleGroups,
+        database.muscleGroups.id.equalsExp(database.sessionMuscleGroups.muscleGroupId),
+      ),
+    ])
+      ..where(database.workoutSessions.isCompleted.equals(true))
+      ..orderBy([OrderingTerm(expression: database.workoutSessions.completedAt, mode: OrderingMode.desc)]);
+
+    final rows = await query.get();
+    final List<WorkoutSessionHistoryDTO> history = [];
+
+    for (var row in rows) {
+      final workoutSession = row.readTable(database.workoutSessions);
+      final trainingSession = row.readTable(database.trainingSessions);
+      final muscleGroup = row.readTable(database.muscleGroups);
+
+      // 2. Para cada sessão, buscar os exercícios realizados (WorkoutHistories)
+      final historyQuery = database.select(database.workoutHistories).join([
+        innerJoin(
+          database.exercises,
+          database.exercises.id.equalsExp(database.workoutHistories.exerciseId),
+        )
+      ])..where(database.workoutHistories.workoutSessionId.equals(workoutSession.id));
+
+      final historyRows = await historyQuery.get();
+      
+      // Mapear os dados
+      List<WorkoutExerciseHistoryDTO> exercisesList = [];
+      
+      for (var hRow in historyRows) {
+        final hist = hRow.readTable(database.workoutHistories);
+        final exer = hRow.readTable(database.exercises);
+
+        // --- NOVO: BUSCAR OS DETALHES DAS SÉRIES (History Filhos) ---
+        final sets = await database.getSetsForHistory(hist.id);
+        
+        // Formatar: "10x 20kg", "8x 22kg"
+        final setsFormatted = sets.map((s) {
+           return "${s.reps}x ${s.weightKg.toStringAsFixed(1).replaceAll('.0', '')}kg";
+        }).toList();
+
+        exercisesList.add(WorkoutExerciseHistoryDTO(
+          exerciseName: exer.name,
+          seriesCount: hist.completedSeries,
+          maxWeight: hist.maxWeightKg ?? 0.0,
+          totalVolume: hist.totalVolumeLoad,
+          setDetails: setsFormatted, // <--- ADICIONAR AQUI
+        ));
+      }
+
+      if (exercisesList.isNotEmpty) {
+        history.add(WorkoutSessionHistoryDTO(
+          sessionId: workoutSession.id,
+          date: workoutSession.completedAt ?? DateTime.now(),
+          sessionName: trainingSession.name,
+          groupName: muscleGroup.name,
+          exercises: exercisesList,
+        ));
+      }
+    }
+
+    return history;
   }
 }

@@ -101,6 +101,19 @@ class WorkoutHistories extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('WorkoutHistorySet')
+class WorkoutHistorySets extends Table {
+  TextColumn get id => text()();
+  // Vincula com o registro do histórico do exercício
+  TextColumn get workoutHistoryId => text().references(WorkoutHistories, #id, onDelete: KeyAction.cascade)();
+  IntColumn get reps => integer()();
+  RealColumn get weightKg => real()();
+  IntColumn get seriesOrder => integer()(); // Para saber se foi a 1ª, 2ª, 3ª série...
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('MuscleRecovery')
 class MuscleRecoveries extends Table {
   TextColumn get id => text()();
@@ -122,12 +135,14 @@ class MuscleRecoveries extends Table {
   WorkoutSessions,
   WorkoutHistories,
   MuscleRecoveries,
+  WorkoutHistorySets,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  // 1. AUMENTE A VERSÃO PARA 5
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -136,9 +151,21 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
+        // Migrações antigas...
         if (from < 3) {
-          // Adiciona a coluna na migração
           await m.addColumn(exercises, exercises.isUnilateral);
+        }
+        
+        // Se a versão era menor que 4, cria a tabela nova
+        if (from < 4) {
+          await m.createTable(workoutHistorySets);
+        }
+
+        // 2. NOVA REGRA: Se a versão for menor que 5, adiciona a coluna que está faltando
+        // Isso vai rodar mesmo se seu app já estiver na versão 4
+        if (from < 5) {
+          // Adiciona a coluna totalVolumeLoad na tabela workoutHistories
+          await m.addColumn(workoutHistories, workoutHistories.totalVolumeLoad);
         }
       },
     );
@@ -275,6 +302,18 @@ class AppDatabase extends _$AppDatabase {
     return (select(workoutHistories)
           ..where((tbl) => tbl.exerciseId.equals(exerciseId))
           ..orderBy([(tbl) => OrderingTerm(expression: tbl.completedAt, mode: OrderingMode.desc)]))
+        .get();
+  }
+
+  // WORKOUT HISTORY SETS
+  Future<int> insertWorkoutHistorySet(WorkoutHistorySet set) {
+    return into(workoutHistorySets).insert(set);
+  }
+
+  Future<List<WorkoutHistorySet>> getSetsForHistory(String historyId) {
+    return (select(workoutHistorySets)
+          ..where((tbl) => tbl.workoutHistoryId.equals(historyId))
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.seriesOrder)]))
         .get();
   }
 

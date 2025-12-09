@@ -3435,6 +3435,381 @@ class MuscleRecoveriesCompanion extends UpdateCompanion<MuscleRecovery> {
   }
 }
 
+class $WorkoutHistorySetsTable extends WorkoutHistorySets
+    with TableInfo<$WorkoutHistorySetsTable, WorkoutHistorySet> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkoutHistorySetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workoutHistoryIdMeta = const VerificationMeta(
+    'workoutHistoryId',
+  );
+  @override
+  late final GeneratedColumn<String> workoutHistoryId = GeneratedColumn<String>(
+    'workout_history_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES workout_histories (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _repsMeta = const VerificationMeta('reps');
+  @override
+  late final GeneratedColumn<int> reps = GeneratedColumn<int>(
+    'reps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weightKgMeta = const VerificationMeta(
+    'weightKg',
+  );
+  @override
+  late final GeneratedColumn<double> weightKg = GeneratedColumn<double>(
+    'weight_kg',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _seriesOrderMeta = const VerificationMeta(
+    'seriesOrder',
+  );
+  @override
+  late final GeneratedColumn<int> seriesOrder = GeneratedColumn<int>(
+    'series_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    workoutHistoryId,
+    reps,
+    weightKg,
+    seriesOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'workout_history_sets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WorkoutHistorySet> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('workout_history_id')) {
+      context.handle(
+        _workoutHistoryIdMeta,
+        workoutHistoryId.isAcceptableOrUnknown(
+          data['workout_history_id']!,
+          _workoutHistoryIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_workoutHistoryIdMeta);
+    }
+    if (data.containsKey('reps')) {
+      context.handle(
+        _repsMeta,
+        reps.isAcceptableOrUnknown(data['reps']!, _repsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_repsMeta);
+    }
+    if (data.containsKey('weight_kg')) {
+      context.handle(
+        _weightKgMeta,
+        weightKg.isAcceptableOrUnknown(data['weight_kg']!, _weightKgMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weightKgMeta);
+    }
+    if (data.containsKey('series_order')) {
+      context.handle(
+        _seriesOrderMeta,
+        seriesOrder.isAcceptableOrUnknown(
+          data['series_order']!,
+          _seriesOrderMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_seriesOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WorkoutHistorySet map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WorkoutHistorySet(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      workoutHistoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}workout_history_id'],
+      )!,
+      reps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reps'],
+      )!,
+      weightKg: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight_kg'],
+      )!,
+      seriesOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}series_order'],
+      )!,
+    );
+  }
+
+  @override
+  $WorkoutHistorySetsTable createAlias(String alias) {
+    return $WorkoutHistorySetsTable(attachedDatabase, alias);
+  }
+}
+
+class WorkoutHistorySet extends DataClass
+    implements Insertable<WorkoutHistorySet> {
+  final String id;
+  final String workoutHistoryId;
+  final int reps;
+  final double weightKg;
+  final int seriesOrder;
+  const WorkoutHistorySet({
+    required this.id,
+    required this.workoutHistoryId,
+    required this.reps,
+    required this.weightKg,
+    required this.seriesOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['workout_history_id'] = Variable<String>(workoutHistoryId);
+    map['reps'] = Variable<int>(reps);
+    map['weight_kg'] = Variable<double>(weightKg);
+    map['series_order'] = Variable<int>(seriesOrder);
+    return map;
+  }
+
+  WorkoutHistorySetsCompanion toCompanion(bool nullToAbsent) {
+    return WorkoutHistorySetsCompanion(
+      id: Value(id),
+      workoutHistoryId: Value(workoutHistoryId),
+      reps: Value(reps),
+      weightKg: Value(weightKg),
+      seriesOrder: Value(seriesOrder),
+    );
+  }
+
+  factory WorkoutHistorySet.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WorkoutHistorySet(
+      id: serializer.fromJson<String>(json['id']),
+      workoutHistoryId: serializer.fromJson<String>(json['workoutHistoryId']),
+      reps: serializer.fromJson<int>(json['reps']),
+      weightKg: serializer.fromJson<double>(json['weightKg']),
+      seriesOrder: serializer.fromJson<int>(json['seriesOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'workoutHistoryId': serializer.toJson<String>(workoutHistoryId),
+      'reps': serializer.toJson<int>(reps),
+      'weightKg': serializer.toJson<double>(weightKg),
+      'seriesOrder': serializer.toJson<int>(seriesOrder),
+    };
+  }
+
+  WorkoutHistorySet copyWith({
+    String? id,
+    String? workoutHistoryId,
+    int? reps,
+    double? weightKg,
+    int? seriesOrder,
+  }) => WorkoutHistorySet(
+    id: id ?? this.id,
+    workoutHistoryId: workoutHistoryId ?? this.workoutHistoryId,
+    reps: reps ?? this.reps,
+    weightKg: weightKg ?? this.weightKg,
+    seriesOrder: seriesOrder ?? this.seriesOrder,
+  );
+  WorkoutHistorySet copyWithCompanion(WorkoutHistorySetsCompanion data) {
+    return WorkoutHistorySet(
+      id: data.id.present ? data.id.value : this.id,
+      workoutHistoryId: data.workoutHistoryId.present
+          ? data.workoutHistoryId.value
+          : this.workoutHistoryId,
+      reps: data.reps.present ? data.reps.value : this.reps,
+      weightKg: data.weightKg.present ? data.weightKg.value : this.weightKg,
+      seriesOrder: data.seriesOrder.present
+          ? data.seriesOrder.value
+          : this.seriesOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutHistorySet(')
+          ..write('id: $id, ')
+          ..write('workoutHistoryId: $workoutHistoryId, ')
+          ..write('reps: $reps, ')
+          ..write('weightKg: $weightKg, ')
+          ..write('seriesOrder: $seriesOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, workoutHistoryId, reps, weightKg, seriesOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WorkoutHistorySet &&
+          other.id == this.id &&
+          other.workoutHistoryId == this.workoutHistoryId &&
+          other.reps == this.reps &&
+          other.weightKg == this.weightKg &&
+          other.seriesOrder == this.seriesOrder);
+}
+
+class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
+  final Value<String> id;
+  final Value<String> workoutHistoryId;
+  final Value<int> reps;
+  final Value<double> weightKg;
+  final Value<int> seriesOrder;
+  final Value<int> rowid;
+  const WorkoutHistorySetsCompanion({
+    this.id = const Value.absent(),
+    this.workoutHistoryId = const Value.absent(),
+    this.reps = const Value.absent(),
+    this.weightKg = const Value.absent(),
+    this.seriesOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkoutHistorySetsCompanion.insert({
+    required String id,
+    required String workoutHistoryId,
+    required int reps,
+    required double weightKg,
+    required int seriesOrder,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       workoutHistoryId = Value(workoutHistoryId),
+       reps = Value(reps),
+       weightKg = Value(weightKg),
+       seriesOrder = Value(seriesOrder);
+  static Insertable<WorkoutHistorySet> custom({
+    Expression<String>? id,
+    Expression<String>? workoutHistoryId,
+    Expression<int>? reps,
+    Expression<double>? weightKg,
+    Expression<int>? seriesOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (workoutHistoryId != null) 'workout_history_id': workoutHistoryId,
+      if (reps != null) 'reps': reps,
+      if (weightKg != null) 'weight_kg': weightKg,
+      if (seriesOrder != null) 'series_order': seriesOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkoutHistorySetsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? workoutHistoryId,
+    Value<int>? reps,
+    Value<double>? weightKg,
+    Value<int>? seriesOrder,
+    Value<int>? rowid,
+  }) {
+    return WorkoutHistorySetsCompanion(
+      id: id ?? this.id,
+      workoutHistoryId: workoutHistoryId ?? this.workoutHistoryId,
+      reps: reps ?? this.reps,
+      weightKg: weightKg ?? this.weightKg,
+      seriesOrder: seriesOrder ?? this.seriesOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (workoutHistoryId.present) {
+      map['workout_history_id'] = Variable<String>(workoutHistoryId.value);
+    }
+    if (reps.present) {
+      map['reps'] = Variable<int>(reps.value);
+    }
+    if (weightKg.present) {
+      map['weight_kg'] = Variable<double>(weightKg.value);
+    }
+    if (seriesOrder.present) {
+      map['series_order'] = Variable<int>(seriesOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkoutHistorySetsCompanion(')
+          ..write('id: $id, ')
+          ..write('workoutHistoryId: $workoutHistoryId, ')
+          ..write('reps: $reps, ')
+          ..write('weightKg: $weightKg, ')
+          ..write('seriesOrder: $seriesOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3456,6 +3831,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MuscleRecoveriesTable muscleRecoveries = $MuscleRecoveriesTable(
     this,
   );
+  late final $WorkoutHistorySetsTable workoutHistorySets =
+      $WorkoutHistorySetsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3469,6 +3846,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutSessions,
     workoutHistories,
     muscleRecoveries,
+    workoutHistorySets,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3534,6 +3912,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('muscle_recoveries', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'workout_histories',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('workout_history_sets', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -6638,6 +7023,33 @@ final class $$WorkoutHistoriesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$WorkoutHistorySetsTable, List<WorkoutHistorySet>>
+  _workoutHistorySetsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.workoutHistorySets,
+        aliasName: $_aliasNameGenerator(
+          db.workoutHistories.id,
+          db.workoutHistorySets.workoutHistoryId,
+        ),
+      );
+
+  $$WorkoutHistorySetsTableProcessedTableManager get workoutHistorySetsRefs {
+    final manager =
+        $$WorkoutHistorySetsTableTableManager(
+          $_db,
+          $_db.workoutHistorySets,
+        ).filter(
+          (f) => f.workoutHistoryId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _workoutHistorySetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$WorkoutHistoriesTableFilterComposer
@@ -6718,6 +7130,31 @@ class $$WorkoutHistoriesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> workoutHistorySetsRefs(
+    Expression<bool> Function($$WorkoutHistorySetsTableFilterComposer f) f,
+  ) {
+    final $$WorkoutHistorySetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.workoutHistorySets,
+      getReferencedColumn: (t) => t.workoutHistoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutHistorySetsTableFilterComposer(
+            $db: $db,
+            $table: $db.workoutHistorySets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -6879,6 +7316,32 @@ class $$WorkoutHistoriesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> workoutHistorySetsRefs<T extends Object>(
+    Expression<T> Function($$WorkoutHistorySetsTableAnnotationComposer a) f,
+  ) {
+    final $$WorkoutHistorySetsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.workoutHistorySets,
+          getReferencedColumn: (t) => t.workoutHistoryId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WorkoutHistorySetsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.workoutHistorySets,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$WorkoutHistoriesTableTableManager
@@ -6894,7 +7357,11 @@ class $$WorkoutHistoriesTableTableManager
           $$WorkoutHistoriesTableUpdateCompanionBuilder,
           (WorkoutHistory, $$WorkoutHistoriesTableReferences),
           WorkoutHistory,
-          PrefetchHooks Function({bool workoutSessionId, bool exerciseId})
+          PrefetchHooks Function({
+            bool workoutSessionId,
+            bool exerciseId,
+            bool workoutHistorySetsRefs,
+          })
         > {
   $$WorkoutHistoriesTableTableManager(
     _$AppDatabase db,
@@ -6958,10 +7425,16 @@ class $$WorkoutHistoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({workoutSessionId = false, exerciseId = false}) {
+              ({
+                workoutSessionId = false,
+                exerciseId = false,
+                workoutHistorySetsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [],
+                  explicitlyWatchedTables: [
+                    if (workoutHistorySetsRefs) db.workoutHistorySets,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -7012,7 +7485,29 @@ class $$WorkoutHistoriesTableTableManager
                         return state;
                       },
                   getPrefetchedDataCallback: (items) async {
-                    return [];
+                    return [
+                      if (workoutHistorySetsRefs)
+                        await $_getPrefetchedData<
+                          WorkoutHistory,
+                          $WorkoutHistoriesTable,
+                          WorkoutHistorySet
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WorkoutHistoriesTableReferences
+                              ._workoutHistorySetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WorkoutHistoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).workoutHistorySetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.workoutHistoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
                 );
               },
@@ -7032,7 +7527,11 @@ typedef $$WorkoutHistoriesTableProcessedTableManager =
       $$WorkoutHistoriesTableUpdateCompanionBuilder,
       (WorkoutHistory, $$WorkoutHistoriesTableReferences),
       WorkoutHistory,
-      PrefetchHooks Function({bool workoutSessionId, bool exerciseId})
+      PrefetchHooks Function({
+        bool workoutSessionId,
+        bool exerciseId,
+        bool workoutHistorySetsRefs,
+      })
     >;
 typedef $$MuscleRecoveriesTableCreateCompanionBuilder =
     MuscleRecoveriesCompanion Function({
@@ -7371,6 +7870,346 @@ typedef $$MuscleRecoveriesTableProcessedTableManager =
       MuscleRecovery,
       PrefetchHooks Function({bool muscleGroupId})
     >;
+typedef $$WorkoutHistorySetsTableCreateCompanionBuilder =
+    WorkoutHistorySetsCompanion Function({
+      required String id,
+      required String workoutHistoryId,
+      required int reps,
+      required double weightKg,
+      required int seriesOrder,
+      Value<int> rowid,
+    });
+typedef $$WorkoutHistorySetsTableUpdateCompanionBuilder =
+    WorkoutHistorySetsCompanion Function({
+      Value<String> id,
+      Value<String> workoutHistoryId,
+      Value<int> reps,
+      Value<double> weightKg,
+      Value<int> seriesOrder,
+      Value<int> rowid,
+    });
+
+final class $$WorkoutHistorySetsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WorkoutHistorySetsTable,
+          WorkoutHistorySet
+        > {
+  $$WorkoutHistorySetsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WorkoutHistoriesTable _workoutHistoryIdTable(_$AppDatabase db) =>
+      db.workoutHistories.createAlias(
+        $_aliasNameGenerator(
+          db.workoutHistorySets.workoutHistoryId,
+          db.workoutHistories.id,
+        ),
+      );
+
+  $$WorkoutHistoriesTableProcessedTableManager get workoutHistoryId {
+    final $_column = $_itemColumn<String>('workout_history_id')!;
+
+    final manager = $$WorkoutHistoriesTableTableManager(
+      $_db,
+      $_db.workoutHistories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_workoutHistoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$WorkoutHistorySetsTableFilterComposer
+    extends Composer<_$AppDatabase, $WorkoutHistorySetsTable> {
+  $$WorkoutHistorySetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weightKg => $composableBuilder(
+    column: $table.weightKg,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get seriesOrder => $composableBuilder(
+    column: $table.seriesOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WorkoutHistoriesTableFilterComposer get workoutHistoryId {
+    final $$WorkoutHistoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.workoutHistoryId,
+      referencedTable: $db.workoutHistories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutHistoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.workoutHistories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutHistorySetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WorkoutHistorySetsTable> {
+  $$WorkoutHistorySetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reps => $composableBuilder(
+    column: $table.reps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weightKg => $composableBuilder(
+    column: $table.weightKg,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get seriesOrder => $composableBuilder(
+    column: $table.seriesOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WorkoutHistoriesTableOrderingComposer get workoutHistoryId {
+    final $$WorkoutHistoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.workoutHistoryId,
+      referencedTable: $db.workoutHistories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutHistoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.workoutHistories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutHistorySetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WorkoutHistorySetsTable> {
+  $$WorkoutHistorySetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get reps =>
+      $composableBuilder(column: $table.reps, builder: (column) => column);
+
+  GeneratedColumn<double> get weightKg =>
+      $composableBuilder(column: $table.weightKg, builder: (column) => column);
+
+  GeneratedColumn<int> get seriesOrder => $composableBuilder(
+    column: $table.seriesOrder,
+    builder: (column) => column,
+  );
+
+  $$WorkoutHistoriesTableAnnotationComposer get workoutHistoryId {
+    final $$WorkoutHistoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.workoutHistoryId,
+      referencedTable: $db.workoutHistories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WorkoutHistoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.workoutHistories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WorkoutHistorySetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WorkoutHistorySetsTable,
+          WorkoutHistorySet,
+          $$WorkoutHistorySetsTableFilterComposer,
+          $$WorkoutHistorySetsTableOrderingComposer,
+          $$WorkoutHistorySetsTableAnnotationComposer,
+          $$WorkoutHistorySetsTableCreateCompanionBuilder,
+          $$WorkoutHistorySetsTableUpdateCompanionBuilder,
+          (WorkoutHistorySet, $$WorkoutHistorySetsTableReferences),
+          WorkoutHistorySet,
+          PrefetchHooks Function({bool workoutHistoryId})
+        > {
+  $$WorkoutHistorySetsTableTableManager(
+    _$AppDatabase db,
+    $WorkoutHistorySetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkoutHistorySetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkoutHistorySetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkoutHistorySetsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> workoutHistoryId = const Value.absent(),
+                Value<int> reps = const Value.absent(),
+                Value<double> weightKg = const Value.absent(),
+                Value<int> seriesOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutHistorySetsCompanion(
+                id: id,
+                workoutHistoryId: workoutHistoryId,
+                reps: reps,
+                weightKg: weightKg,
+                seriesOrder: seriesOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String workoutHistoryId,
+                required int reps,
+                required double weightKg,
+                required int seriesOrder,
+                Value<int> rowid = const Value.absent(),
+              }) => WorkoutHistorySetsCompanion.insert(
+                id: id,
+                workoutHistoryId: workoutHistoryId,
+                reps: reps,
+                weightKg: weightKg,
+                seriesOrder: seriesOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WorkoutHistorySetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({workoutHistoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (workoutHistoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.workoutHistoryId,
+                                referencedTable:
+                                    $$WorkoutHistorySetsTableReferences
+                                        ._workoutHistoryIdTable(db),
+                                referencedColumn:
+                                    $$WorkoutHistorySetsTableReferences
+                                        ._workoutHistoryIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WorkoutHistorySetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WorkoutHistorySetsTable,
+      WorkoutHistorySet,
+      $$WorkoutHistorySetsTableFilterComposer,
+      $$WorkoutHistorySetsTableOrderingComposer,
+      $$WorkoutHistorySetsTableAnnotationComposer,
+      $$WorkoutHistorySetsTableCreateCompanionBuilder,
+      $$WorkoutHistorySetsTableUpdateCompanionBuilder,
+      (WorkoutHistorySet, $$WorkoutHistorySetsTableReferences),
+      WorkoutHistorySet,
+      PrefetchHooks Function({bool workoutHistoryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7391,4 +8230,6 @@ class $AppDatabaseManager {
       $$WorkoutHistoriesTableTableManager(_db, _db.workoutHistories);
   $$MuscleRecoveriesTableTableManager get muscleRecoveries =>
       $$MuscleRecoveriesTableTableManager(_db, _db.muscleRecoveries);
+  $$WorkoutHistorySetsTableTableManager get workoutHistorySets =>
+      $$WorkoutHistorySetsTableTableManager(_db, _db.workoutHistorySets);
 }

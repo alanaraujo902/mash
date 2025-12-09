@@ -212,43 +212,54 @@ class ExerciseProvider extends ChangeNotifier {
 
       final completedSeries = seriesList.where((s) => s.isCompleted).toList();
 
-      // --- SALVAR HISTÓRICO ---
       if (completedSeries.isNotEmpty) {
         double maxWeight = 0;
-        double volumeLoad = 0.0; // Variável para o cálculo
+        double volumeLoad = 0.0;
 
+        // Calcula totais primeiro
         for (var s in completedSeries) {
-          // Max Weight
-          if ((s.weightKg ?? 0) > maxWeight) {
-            maxWeight = s.weightKg!;
-          }
-
-          // --- CÁLCULO DO VOLUME LOAD ---
-          // Volume de uma série = Repetições Feitas * Carga Usada
           final reps = s.actualReps ?? 0;
           final weight = s.weightKg ?? 0.0;
           
-          // --- LÓGICA DE CÁLCULO DUPLICADO ---
-          double seriesVolume = (reps * weight);
+          if (weight > maxWeight) maxWeight = weight;
           
-          if (exercise.isUnilateral) {
-            seriesVolume = seriesVolume * 2; // Duplica se for unilateral
-          }
+          double seriesVolume = (reps * weight);
+          if (exercise.isUnilateral) seriesVolume *= 2;
           
           volumeLoad += seriesVolume;
         }
 
+        // --- CORREÇÃO AQUI: Salvar o PAI (History) PRIMEIRO ---
+        final historyId = const Uuid().v4();
+        
         final history = WorkoutHistory(
-          id: const Uuid().v4(),
+          id: historyId,
           workoutSessionId: workoutSessionId,
           exerciseId: exercise.id,
           completedSeries: completedSeries.length,
           maxWeightKg: maxWeight > 0 ? maxWeight : null,
-          totalVolumeLoad: volumeLoad, // Salvando o novo cálculo
+          totalVolumeLoad: volumeLoad,
           completedAt: now,
         );
 
         await database.insertWorkoutHistory(history);
+
+        // --- AGORA salvamos os FILHOS (Sets Detalhados) ---
+        int orderCounter = 1;
+        for (var s in completedSeries) {
+          final reps = s.actualReps ?? 0;
+          final weight = s.weightKg ?? 0.0;
+
+          await database.insertWorkoutHistorySet(
+            WorkoutHistorySet(
+              id: const Uuid().v4(),
+              workoutHistoryId: historyId, // Link correto com o Pai já criado
+              reps: reps,
+              weightKg: weight,
+              seriesOrder: orderCounter++,
+            ),
+          );
+        }
       }
 
       // --- O RESET ACONTECE AQUI ---

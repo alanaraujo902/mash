@@ -6,6 +6,7 @@ import 'training_sessions_screen.dart';
 import 'evolution_screen.dart';
 import 'train_screen.dart';
 import 'recovery_screen.dart';
+import 'history_screen.dart'; // <--- IMPORTAR NOVA TELA
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex; // Adicione isso para permitir navegação direta
@@ -37,9 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         children: const [
           TrainScreen(),            // 0
-          TrainingSessionsScreen(), // 1
-          EvolutionScreen(),        // 2
-          RecoveryScreen(),         // 3: Nova Tela
+          HistoryScreen(),          // 1: <--- NOVA TELA AQUI (Reordenando para ficar lógico)
+          TrainingSessionsScreen(), // 2
+          EvolutionScreen(),        // 3
+          RecoveryScreen(),         // 4
         ],
         ),
       ),
@@ -50,24 +52,30 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedIndex = index;
           });
         },
+        // Altura menor para caber 5 itens confortavelmente
+        height: 70, 
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.play_circle_fill),
-            label: 'Treinar', // Nova aba
+            label: 'Treinar',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history), // <--- NOVO ÍCONE
+            label: 'Histórico',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings),
-            label: 'Configuração', // Renomeado de "Treinos"
+            label: 'Config', 
           ),
           NavigationDestination(
             icon: Icon(Icons.trending_up),
             label: 'Evolução',
           ),
           NavigationDestination(
-            // Nova aba
             icon: Icon(Icons.medical_services_outlined),
             selectedIcon: Icon(Icons.medical_services),
-            label: 'Recuperação',
+            label: 'Recup.',
           ),
         ],
       ),
