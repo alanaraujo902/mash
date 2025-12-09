@@ -29,6 +29,7 @@ class ExerciseProvider extends ChangeNotifier {
     int plannedSeries,
     int plannedReps,
     int intervalSeconds,
+    bool isUnilateral, // <--- NOVO PARÂMETRO
   ) async {
     final currentExercises = getExercises(sessionMuscleGroupId);
     final exercise = Exercise(
@@ -38,6 +39,7 @@ class ExerciseProvider extends ChangeNotifier {
       plannedSeries: plannedSeries,
       plannedReps: plannedReps,
       intervalSeconds: intervalSeconds,
+      isUnilateral: isUnilateral, // <--- SALVAR NO BANCO
       order: currentExercises.length,
       createdAt: DateTime.now(),
     );
@@ -67,6 +69,7 @@ class ExerciseProvider extends ChangeNotifier {
     int plannedSeries,
     int plannedReps,
     int intervalSeconds,
+    bool isUnilateral, // <--- NOVO PARÂMETRO
   ) async {
     // Buscar o exercício em todos os grupos para atualizar
     for (var exercisesList in _exercisesBySessionMuscleGroup.values) {
@@ -78,6 +81,7 @@ class ExerciseProvider extends ChangeNotifier {
           plannedSeries: plannedSeries,
           plannedReps: plannedReps,
           intervalSeconds: intervalSeconds,
+          isUnilateral: isUnilateral, // <--- ATUALIZAR
         );
         await database.updateExercise(updated);
         exercisesList[exerciseIndex] = updated;
@@ -223,7 +227,15 @@ class ExerciseProvider extends ChangeNotifier {
           // Volume de uma série = Repetições Feitas * Carga Usada
           final reps = s.actualReps ?? 0;
           final weight = s.weightKg ?? 0.0;
-          volumeLoad += (reps * weight);
+          
+          // --- LÓGICA DE CÁLCULO DUPLICADO ---
+          double seriesVolume = (reps * weight);
+          
+          if (exercise.isUnilateral) {
+            seriesVolume = seriesVolume * 2; // Duplica se for unilateral
+          }
+          
+          volumeLoad += seriesVolume;
         }
 
         final history = WorkoutHistory(

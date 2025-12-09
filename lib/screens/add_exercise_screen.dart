@@ -22,6 +22,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   int _plannedSeries = 3;
   int _plannedReps = 10;
   int _intervalSeconds = 60;
+  bool _isUnilateral = false; // <--- NOVO ESTADO
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
       _plannedSeries = e.plannedSeries;
       _plannedReps = e.plannedReps;
       _intervalSeconds = e.intervalSeconds;
+      _isUnilateral = e.isUnilateral; // <--- CARREGAR VALOR
     }
   }
 
@@ -105,6 +107,17 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               min: 10,
               step: 10,
             ),
+            const SizedBox(height: 24),
+
+            // --- NOVO SWITCH ---
+            SwitchListTile(
+              title: const Text('Exercício Unilateral (2x)'),
+              subtitle: const Text('Duplica o cálculo de tonelagem e exibe dois checkboxes.'),
+              value: _isUnilateral,
+              onChanged: (val) => setState(() => _isUnilateral = val),
+              contentPadding: EdgeInsets.zero,
+            ),
+
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -120,6 +133,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                                 _plannedSeries,
                                 _plannedReps,
                                 _intervalSeconds,
+                                _isUnilateral, // <--- PASSAR VALOR
                               );
                         } else {
                           // LÓGICA DE CRIAÇÃO
@@ -129,6 +143,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                                 _plannedSeries,
                                 _plannedReps,
                                 _intervalSeconds,
+                                _isUnilateral, // <--- PASSAR VALOR
                               );
                         }
 

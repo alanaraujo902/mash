@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' as drift; // <--- ALTERADO: Importação com alias para evitar erros
 import '../database/database.dart';
 import '../providers/exercise_provider.dart';
 import '../providers/recovery_provider.dart';
@@ -7,8 +8,8 @@ import '../providers/workout_timer_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/neon_card.dart';
 import '../utils/app_colors.dart';
-import 'home_screen.dart';
 import 'dart:async';
+import 'dart:ui'; // Necessário para FontFeature
 
 class ActiveWorkoutScreen extends StatefulWidget {
   final SessionMuscleGroup sessionMuscleGroup;
@@ -33,7 +34,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // Timer Local (Específico deste Grupo Muscular)
   Timer? _groupTimer;
   Duration _groupDuration = Duration.zero;
-  late DateTime _groupStartTime; // Para salvar no banco com precisão
+  
+  // ignore: unused_field
+  late DateTime _groupStartTime;
 
   @override
   void initState() {
@@ -483,6 +486,7 @@ class _ExerciseItemState extends State<_ExerciseItem> {
             Column(
               children: _series.map((serie) => _SeriesRow(
                 serie: serie,
+                isUnilateral: widget.exercise.isUnilateral, // <--- PASSAR AQUI
                 // Passamos a função do timer e verificação para a linha
                 onSeriesCompleted: () {
                   // 1. Mostra o timer
@@ -592,12 +596,14 @@ class _ExerciseItemState extends State<_ExerciseItem> {
 
 class _SeriesRow extends StatefulWidget {
   final ExerciseSeries serie;
+  final bool isUnilateral; // <--- NOVO
   final VoidCallback onSeriesCompleted; // Callback para iniciar o timer
   final VoidCallback onSave;
 
   const _SeriesRow({
     Key? key,
     required this.serie,
+    required this.isUnilateral, // <--- RECEBER
     required this.onSeriesCompleted,
     required this.onSave,
   }) : super(key: key);
@@ -610,6 +616,8 @@ class _SeriesRowState extends State<_SeriesRow> {
   late TextEditingController _weightController;
   late TextEditingController _repsController;
   bool _isCompleted = false;
+  bool _leftSideDone = false;  // Visual apenas
+  bool _rightSideDone = false; // Visual apenas
   Timer? _timer;
 
   @override
@@ -628,6 +636,12 @@ class _SeriesRowState extends State<_SeriesRow> {
     );
 
     _isCompleted = widget.serie.isCompleted;
+    
+    // Se já estava completo no banco, marcamos os dois lados visualmente
+    if (_isCompleted) {
+      _leftSideDone = true;
+      _rightSideDone = true;
+    }
   }
 
   @override
@@ -638,55 +652,73 @@ class _SeriesRowState extends State<_SeriesRow> {
     super.dispose();
   }
 
-  Future<void> _saveSeries() async {
-    if (_weightController.text.isEmpty || _repsController.text.isEmpty) return;
+  // Nova função lógica separada para organizar
+  Future<void> _toggleSide({bool isLeft = true, bool isStandard = false}) async {
+    // Validação básica
+    if (_weightController.text.isEmpty || _repsController.text.isEmpty) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha carga e repetições')));
+       return;
+    }
 
     final weight = double.tryParse(_weightController.text);
     final reps = int.tryParse(_repsController.text);
+    if (weight == null || reps == null) return;
 
-    if (weight != null && reps != null) {
-      await context.read<ExerciseProvider>().updateExerciseSeries(
-            widget.serie.id,
-            reps,
-            weight,
-          );
+    final wasCompleted = _isCompleted;
 
-      // Armazena o estado antigo
-      final wasCompleted = _isCompleted;
+    setState(() {
+      if (isStandard) {
+        _isCompleted = !_isCompleted;
+      } else {
+        // Unilateral
+        if (isLeft) _leftSideDone = !_leftSideDone;
+        else _rightSideDone = !_rightSideDone;
+        
+        _isCompleted = _leftSideDone && _rightSideDone;
+      }
+    });
 
-      // Recarregar séries para atualizar o estado
-      final provider = context.read<ExerciseProvider>();
-      await provider.loadExerciseSeries(widget.serie.exerciseId);
-      
-      // Notificar o componente pai para recarregar
-      widget.onSave();
-      
-      // Buscar a série atualizada
-      final updatedSeries = provider.getExerciseSeries(widget.serie.exerciseId);
-      final updatedSerie = updatedSeries.firstWhere(
-        (s) => s.id == widget.serie.id,
-        orElse: () => widget.serie,
+    final provider = context.read<ExerciseProvider>();
+
+    if (_isCompleted) {
+      // Salva como COMPLETO (Database define isCompleted = true)
+      await provider.updateExerciseSeries(
+        widget.serie.id,
+        reps,
+        weight,
       );
+      
+      // Callback para tocar timer/verificar fim
+      widget.onSeriesCompleted();
+      
+    } else {
+      // Se desmarcou e estava completo, precisamos reverter no banco
+      if (widget.serie.isCompleted) {
+        // Precisamos de um método no provider que force isCompleted = false
+        // Mas mantendo os dados (updateExerciseSeries atual seta true).
+        // Solução rápida: Atualiza o objeto manualmente via Drift
 
-      if (mounted) {
-        setState(() {
-          _isCompleted = updatedSerie.isCompleted;
-        });
-
-        // Só inicia o timer se estiver marcando como completo (não quando desmarca)
-        if (!wasCompleted && updatedSerie.isCompleted) {
-          widget.onSeriesCompleted();
-        }
-
-        // Feedback visual
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Série salva!'),
-            duration: Duration(seconds: 1),
-          ),
+        // Usa drift.Value para evitar erro de namespace
+        final updatedSerie = widget.serie.copyWith(
+          isCompleted: false,
+          actualReps: drift.Value(reps), // <--- CORREÇÃO AQUI
+          weightKg: drift.Value(weight), // <--- CORREÇÃO AQUI
+          completedAt: const drift.Value(null), // <--- CORREÇÃO AQUI
         );
+        
+        await provider.database.updateExerciseSeries(updatedSerie);
+        // Atualiza a lista local do provider
+        await provider.loadExerciseSeries(widget.serie.exerciseId);
       }
     }
+    
+    // Atualiza a UI pai
+    widget.onSave();
+  }
+
+  Future<void> _saveSeries() async {
+    // Método mantido para compatibilidade, mas agora usa _toggleSide
+    await _toggleSide(isStandard: !widget.isUnilateral);
   }
 
   @override
@@ -735,16 +767,56 @@ class _SeriesRowState extends State<_SeriesRow> {
               enabled: !_isCompleted, // Desabilita edição se concluído
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
 
-          // Checkbox / Botão Salvar
-          IconButton(
-            icon: Icon(
-              _isCompleted ? Icons.check_circle : Icons.check_circle_outline,
-              color: _isCompleted ? Colors.green : Colors.grey,
+          // CHECKBOXES
+          if (widget.isUnilateral) ...[
+            // LADO ESQUERDO
+            InkWell(
+              onTap: () => _toggleSide(isLeft: true),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  children: [
+                    Text("E", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Icon(
+                      _leftSideDone ? Icons.check_circle : Icons.circle_outlined,
+                      color: _leftSideDone ? Colors.green : Colors.grey,
+                      size: 28,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            onPressed: _saveSeries,
-          ),
+            const SizedBox(width: 4),
+            // LADO DIREITO
+            InkWell(
+              onTap: () => _toggleSide(isLeft: false),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  children: [
+                    Text("D", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Icon(
+                      _rightSideDone ? Icons.check_circle : Icons.circle_outlined,
+                      color: _rightSideDone ? Colors.green : Colors.grey,
+                      size: 28,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else ...[
+            // CHECKBOX PADRÃO ÚNICO
+            IconButton(
+              icon: Icon(
+                _isCompleted ? Icons.check_circle : Icons.check_circle_outline,
+                color: _isCompleted ? Colors.green : Colors.grey,
+                size: 32,
+              ),
+              onPressed: () => _toggleSide(isStandard: true),
+            ),
+          ],
         ],
       ),
     );

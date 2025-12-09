@@ -49,6 +49,10 @@ class Exercises extends Table {
   IntColumn get plannedReps => integer()();
   IntColumn get intervalSeconds => integer().withDefault(const Constant(60))();
   IntColumn get order => integer().withDefault(const Constant(0))();
+  
+  // --- ADICIONE ESTA LINHA ---
+  BoolColumn get isUnilateral => boolean().withDefault(const Constant(false))();
+  
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   
   @override
@@ -123,7 +127,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 3) {
+          // Adiciona a coluna na migração
+          await m.addColumn(exercises, exercises.isUnilateral);
+        }
+      },
+    );
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'muscle_app_db');

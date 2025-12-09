@@ -1109,6 +1109,21 @@ class $ExercisesTable extends Exercises
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _isUnilateralMeta = const VerificationMeta(
+    'isUnilateral',
+  );
+  @override
+  late final GeneratedColumn<bool> isUnilateral = GeneratedColumn<bool>(
+    'is_unilateral',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_unilateral" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1130,6 +1145,7 @@ class $ExercisesTable extends Exercises
     plannedReps,
     intervalSeconds,
     order,
+    isUnilateral,
     createdAt,
   ];
   @override
@@ -1205,6 +1221,15 @@ class $ExercisesTable extends Exercises
         order.isAcceptableOrUnknown(data['order']!, _orderMeta),
       );
     }
+    if (data.containsKey('is_unilateral')) {
+      context.handle(
+        _isUnilateralMeta,
+        isUnilateral.isAcceptableOrUnknown(
+          data['is_unilateral']!,
+          _isUnilateralMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1248,6 +1273,10 @@ class $ExercisesTable extends Exercises
         DriftSqlType.int,
         data['${effectivePrefix}order'],
       )!,
+      isUnilateral: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_unilateral'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1269,6 +1298,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final int plannedReps;
   final int intervalSeconds;
   final int order;
+  final bool isUnilateral;
   final DateTime createdAt;
   const Exercise({
     required this.id,
@@ -1278,6 +1308,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     required this.plannedReps,
     required this.intervalSeconds,
     required this.order,
+    required this.isUnilateral,
     required this.createdAt,
   });
   @override
@@ -1290,6 +1321,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     map['planned_reps'] = Variable<int>(plannedReps);
     map['interval_seconds'] = Variable<int>(intervalSeconds);
     map['order'] = Variable<int>(order);
+    map['is_unilateral'] = Variable<bool>(isUnilateral);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -1303,6 +1335,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       plannedReps: Value(plannedReps),
       intervalSeconds: Value(intervalSeconds),
       order: Value(order),
+      isUnilateral: Value(isUnilateral),
       createdAt: Value(createdAt),
     );
   }
@@ -1322,6 +1355,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       plannedReps: serializer.fromJson<int>(json['plannedReps']),
       intervalSeconds: serializer.fromJson<int>(json['intervalSeconds']),
       order: serializer.fromJson<int>(json['order']),
+      isUnilateral: serializer.fromJson<bool>(json['isUnilateral']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -1336,6 +1370,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'plannedReps': serializer.toJson<int>(plannedReps),
       'intervalSeconds': serializer.toJson<int>(intervalSeconds),
       'order': serializer.toJson<int>(order),
+      'isUnilateral': serializer.toJson<bool>(isUnilateral),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -1348,6 +1383,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     int? plannedReps,
     int? intervalSeconds,
     int? order,
+    bool? isUnilateral,
     DateTime? createdAt,
   }) => Exercise(
     id: id ?? this.id,
@@ -1357,6 +1393,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     plannedReps: plannedReps ?? this.plannedReps,
     intervalSeconds: intervalSeconds ?? this.intervalSeconds,
     order: order ?? this.order,
+    isUnilateral: isUnilateral ?? this.isUnilateral,
     createdAt: createdAt ?? this.createdAt,
   );
   Exercise copyWithCompanion(ExercisesCompanion data) {
@@ -1376,6 +1413,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ? data.intervalSeconds.value
           : this.intervalSeconds,
       order: data.order.present ? data.order.value : this.order,
+      isUnilateral: data.isUnilateral.present
+          ? data.isUnilateral.value
+          : this.isUnilateral,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1390,6 +1430,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('plannedReps: $plannedReps, ')
           ..write('intervalSeconds: $intervalSeconds, ')
           ..write('order: $order, ')
+          ..write('isUnilateral: $isUnilateral, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1404,6 +1445,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     plannedReps,
     intervalSeconds,
     order,
+    isUnilateral,
     createdAt,
   );
   @override
@@ -1417,6 +1459,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.plannedReps == this.plannedReps &&
           other.intervalSeconds == this.intervalSeconds &&
           other.order == this.order &&
+          other.isUnilateral == this.isUnilateral &&
           other.createdAt == this.createdAt);
 }
 
@@ -1428,6 +1471,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<int> plannedReps;
   final Value<int> intervalSeconds;
   final Value<int> order;
+  final Value<bool> isUnilateral;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ExercisesCompanion({
@@ -1438,6 +1482,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.plannedReps = const Value.absent(),
     this.intervalSeconds = const Value.absent(),
     this.order = const Value.absent(),
+    this.isUnilateral = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1449,6 +1494,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     required int plannedReps,
     this.intervalSeconds = const Value.absent(),
     this.order = const Value.absent(),
+    this.isUnilateral = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1464,6 +1510,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<int>? plannedReps,
     Expression<int>? intervalSeconds,
     Expression<int>? order,
+    Expression<bool>? isUnilateral,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -1476,6 +1523,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (plannedReps != null) 'planned_reps': plannedReps,
       if (intervalSeconds != null) 'interval_seconds': intervalSeconds,
       if (order != null) 'order': order,
+      if (isUnilateral != null) 'is_unilateral': isUnilateral,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1489,6 +1537,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Value<int>? plannedReps,
     Value<int>? intervalSeconds,
     Value<int>? order,
+    Value<bool>? isUnilateral,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -1500,6 +1549,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       plannedReps: plannedReps ?? this.plannedReps,
       intervalSeconds: intervalSeconds ?? this.intervalSeconds,
       order: order ?? this.order,
+      isUnilateral: isUnilateral ?? this.isUnilateral,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1531,6 +1581,9 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (order.present) {
       map['order'] = Variable<int>(order.value);
     }
+    if (isUnilateral.present) {
+      map['is_unilateral'] = Variable<bool>(isUnilateral.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1550,6 +1603,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('plannedReps: $plannedReps, ')
           ..write('intervalSeconds: $intervalSeconds, ')
           ..write('order: $order, ')
+          ..write('isUnilateral: $isUnilateral, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -4960,6 +5014,7 @@ typedef $$ExercisesTableCreateCompanionBuilder =
       required int plannedReps,
       Value<int> intervalSeconds,
       Value<int> order,
+      Value<bool> isUnilateral,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -4972,6 +5027,7 @@ typedef $$ExercisesTableUpdateCompanionBuilder =
       Value<int> plannedReps,
       Value<int> intervalSeconds,
       Value<int> order,
+      Value<bool> isUnilateral,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -5089,6 +5145,11 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<int> get order => $composableBuilder(
     column: $table.order,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isUnilateral => $composableBuilder(
+    column: $table.isUnilateral,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5210,6 +5271,11 @@ class $$ExercisesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isUnilateral => $composableBuilder(
+    column: $table.isUnilateral,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5272,6 +5338,11 @@ class $$ExercisesTableAnnotationComposer
 
   GeneratedColumn<int> get order =>
       $composableBuilder(column: $table.order, builder: (column) => column);
+
+  GeneratedColumn<bool> get isUnilateral => $composableBuilder(
+    column: $table.isUnilateral,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -5391,6 +5462,7 @@ class $$ExercisesTableTableManager
                 Value<int> plannedReps = const Value.absent(),
                 Value<int> intervalSeconds = const Value.absent(),
                 Value<int> order = const Value.absent(),
+                Value<bool> isUnilateral = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion(
@@ -5401,6 +5473,7 @@ class $$ExercisesTableTableManager
                 plannedReps: plannedReps,
                 intervalSeconds: intervalSeconds,
                 order: order,
+                isUnilateral: isUnilateral,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -5413,6 +5486,7 @@ class $$ExercisesTableTableManager
                 required int plannedReps,
                 Value<int> intervalSeconds = const Value.absent(),
                 Value<int> order = const Value.absent(),
+                Value<bool> isUnilateral = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion.insert(
@@ -5423,6 +5497,7 @@ class $$ExercisesTableTableManager
                 plannedReps: plannedReps,
                 intervalSeconds: intervalSeconds,
                 order: order,
+                isUnilateral: isUnilateral,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
