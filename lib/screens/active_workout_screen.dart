@@ -245,21 +245,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         title: Text('Treinando: ${widget.groupName}'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.check_circle_outline),
+            tooltip: 'Finalizar Treino',
+            onPressed: _manualFinish,
+            color: isNeon ? AppColors.neonGreen : Colors.green,
+          ),
+          IconButton(
             icon: const Icon(Icons.pause_circle_filled),
             tooltip: 'Pausar / Sair',
             onPressed: () => Navigator.pop(context),
-          )
+          ),
         ],
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0), 
-        child: FloatingActionButton.extended(
-          onPressed: _manualFinish,
-          icon: const Icon(Icons.check_circle_outline),
-          label: const Text('Finalizar'),
-          backgroundColor: isNeon ? AppColors.neonGreen : Colors.green,
-          foregroundColor: isNeon ? Colors.black : Colors.white,
-        ),
       ),
       body: SafeArea(
         child: Stack(
@@ -276,7 +272,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       : _exercises.isEmpty
                           ? const Center(child: Text('Nenhum exercício neste grupo.'))
                           : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), 
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16), 
                               itemCount: _exercises.length,
                               itemBuilder: (context, index) {
                                 return _ExerciseItem(
