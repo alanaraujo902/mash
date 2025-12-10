@@ -143,7 +143,7 @@ class _MuscleGroupHistoryCard extends StatelessWidget {
             ),
           ),
 
-          // LISTA DE EXERCÍCIOS (TOGGLES)
+          // LISTA DE EXERCÍCIOS
           ...group.exercises.map((exercise) {
             return Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -206,15 +206,14 @@ class _HistoryRecordRow extends StatelessWidget {
     }
     
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 16.0), // Espaçamento maior
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // LINHA SUPERIOR: Data + Volume (Esq)  |  Max Weight (Dir)
+          // LINHA 1: Data, Volume e Max
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // LADO ESQUERDO: Data e Volume
               Row(
                 children: [
                   Text(
@@ -226,16 +225,10 @@ class _HistoryRecordRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    '•', // Separador
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isNeon ? Colors.grey[600] : Colors.grey[400],
-                    ),
-                  ),
+                  Text('•', style: TextStyle(fontSize: 10, color: Colors.grey)),
                   const SizedBox(width: 8),
                   Text(
-                    'Vol: $volumeText', // <--- NOVO: VOLUME AQUI
+                    'Vol: $volumeText',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -244,8 +237,6 @@ class _HistoryRecordRow extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // LADO DIREITO: Carga Máxima
               Text(
                 'Max: ${record.maxWeight.toStringAsFixed(1).replaceAll('.0', '')}kg',
                 style: TextStyle(
@@ -257,29 +248,60 @@ class _HistoryRecordRow extends StatelessWidget {
             ],
           ),
           
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           
-          // CHIPS COM AS SÉRIES
-          if (record.setDetails.isNotEmpty)
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: record.setDetails.map((setInfo) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isNeon ? AppColors.neonPurple.withOpacity(0.1) : Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: isNeon ? AppColors.neonPurple.withOpacity(0.3) : Colors.grey.shade300,
-                    ),
-                  ),
-                  child: Text(
-                    setInfo,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isNeon ? Colors.white : Colors.black87,
-                    ),
+          // LINHA 2: LISTA DE SÉRIES E FEEDBACKS
+          if (record.sets.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: record.sets.map((setInfo) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Badge da Série (Ex: 10x 20kg)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isNeon ? AppColors.neonPurple.withOpacity(0.1) : Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isNeon ? AppColors.neonPurple.withOpacity(0.3) : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Text(
+                          setInfo.performance,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isNeon ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 8),
+
+                      // Texto do Feedback (Se houver)
+                      if (setInfo.feedbackSummary != null)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              setInfo.feedbackSummary!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                                color: setInfo.hasLimiters 
+                                    ? (isNeon ? Colors.orangeAccent : Colors.deepOrange) // Destaca limitadores
+                                    : (isNeon ? Colors.grey[400] : Colors.grey[600]),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 );
               }).toList(),
