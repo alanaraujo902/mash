@@ -281,4 +281,33 @@ class ExerciseProvider extends ChangeNotifier {
     // Notifica a tela para recarregar se necessário
     notifyListeners();
   }
+
+  // NOVO: Calcula o volume total (tonelagem) atual da sessão em tempo real
+  Future<double> getCurrentSessionVolume(String sessionMuscleGroupId) async {
+    double totalVolume = 0.0;
+    
+    // 1. Pega todos os exercícios do grupo
+    final exercises = await database.getExercisesBySessionMuscleGroup(sessionMuscleGroupId);
+
+    for (var exercise in exercises) {
+      // 2. Pega as séries de cada exercício
+      final seriesList = await database.getExerciseSeriesList(exercise.id);
+      
+      for (var series in seriesList) {
+        // 3. Soma apenas se estiver completada e tiver dados válidos
+        if (series.isCompleted && series.actualReps != null && series.weightKg != null) {
+          double seriesVol = series.actualReps! * series.weightKg!;
+          
+          // Se for unilateral, duplica o volume (perna esq + dir)
+          if (exercise.isUnilateral) {
+            seriesVol *= 2;
+          }
+          
+          totalVolume += seriesVol;
+        }
+      }
+    }
+    
+    return totalVolume;
+  }
 }

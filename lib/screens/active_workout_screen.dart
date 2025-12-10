@@ -44,14 +44,18 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // --- Timer de Descanso ---
   Timer? _restTimer;
   int _restSecondsRemaining = 0;
+  bool get _isResting => _restSecondsRemaining > 0;
   
-  // Estado visual do timer (Começa escondido)
+  // Estado visual do timer
   TimerViewMode _timerViewMode = TimerViewMode.hidden;
+
+  // --- Tonelagem Acumulada ---
+  double _currentTotalVolume = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _loadExercises();
+    _loadData();
 
     _groupStartTime = DateTime.now();
 
@@ -70,13 +74,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   void _startGroupTimer() {
     _groupTimer?.cancel();
-
     _groupTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
           _groupDuration += const Duration(seconds: 1);
         });
-
         context.read<WorkoutTimerProvider>().updateGroupDuration(
               widget.sessionMuscleGroup.id,
               _groupDuration,
@@ -90,7 +92,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     _restTimer?.cancel();
     setState(() {
       _restSecondsRemaining = seconds;
-      // AO INICIAR: Aparece no modo EXPANDIDO (Antiga aparência)
       _timerViewMode = TimerViewMode.expanded;
     });
 
@@ -121,17 +122,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     });
   }
 
-  // Alterna entre minimizado e expandido
-  void _toggleTimerMode() {
-    setState(() {
-      if (_timerViewMode == TimerViewMode.expanded) {
-        _timerViewMode = TimerViewMode.minimized;
-      } else if (_timerViewMode == TimerViewMode.minimized) {
-        _timerViewMode = TimerViewMode.expanded;
-      }
-    });
-  }
-
   @override
   void dispose() {
     _groupTimer?.cancel();
@@ -147,17 +137,29 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     return "$hours$minutes:$seconds";
   }
 
-  Future<void> _loadExercises() async {
-    await context
-        .read<ExerciseProvider>()
-        .loadExercises(widget.sessionMuscleGroup.id);
+  // --- Carregamento Unificado ---
+  Future<void> _loadData() async {
+    final provider = context.read<ExerciseProvider>();
+    
+    // 1. Carrega exercícios
+    await provider.loadExercises(widget.sessionMuscleGroup.id);
+    
+    // 2. Calcula volume atual
+    await _recalcVolume();
 
     if (mounted) {
       setState(() {
-        _exercises = context
-            .read<ExerciseProvider>()
-            .getExercises(widget.sessionMuscleGroup.id);
+        _exercises = provider.getExercises(widget.sessionMuscleGroup.id);
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _recalcVolume() async {
+    final vol = await context.read<ExerciseProvider>().getCurrentSessionVolume(widget.sessionMuscleGroup.id);
+    if (mounted) {
+      setState(() {
+        _currentTotalVolume = vol;
       });
     }
   }
@@ -168,21 +170,16 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
     if (isAllDone && mounted) {
       _stopRestTimer(); 
-      // Chama o dialog indicando que está 100% completo
       _showCompletionDialog(isComplete: true);
     }
   }
 
-  // Lógica do botão manual "Finalizar"
   void _manualFinish() async {
     final provider = context.read<ExerciseProvider>();
     final isAllDone = await provider.checkAllExercisesCompleted(widget.sessionMuscleGroup.id);
-    
-    // Chama o dialog, passando o status real
     _showCompletionDialog(isComplete: isAllDone);
   }
 
-  // Dialog unificado (serve tanto para completo quanto para parcial)
   void _showCompletionDialog({required bool isComplete}) {
     showDialog(
       context: context,
@@ -190,16 +187,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       builder: (context) => AlertDialog(
         title: Text(isComplete ? '🎉 Treino Concluído!' : '⚠️ Finalizar Parcialmente?'),
         content: Text(
-          'Tempo do grupo: ${_formatDuration(_groupDuration)}\n\n' +
+          'Tempo: ${_formatDuration(_groupDuration)}\n'
+          'Volume Total: ${(_currentTotalVolume / 1000).toStringAsFixed(2)} toneladas\n\n' +
           (isComplete 
             ? 'Parabéns! Você completou todas as séries.' 
-            : 'Você ainda tem séries pendentes. O que foi feito será salvo e o treino será encerrado.') +
+            : 'Você ainda tem séries pendentes.') +
           '\n\nDeseja salvar no histórico?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // Cancelar
-            child: const Text('Voltar / Revisar'),
+            onPressed: () => Navigator.pop(context), 
+            child: const Text('Voltar'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -207,13 +205,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              // 1. Salvar no histórico
               await context.read<ExerciseProvider>().finishSessionMuscleGroup(
                 widget.sessionMuscleGroup.id,
                 widget.trainingSessionId,
               );
 
-              // 2. Marcar grupo muscular como FATIGADO
               if (mounted) {
                 await context.read<RecoveryProvider>().markAsFatigued(
                   widget.sessionMuscleGroup.muscleGroupId,
@@ -221,8 +217,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               }
 
               if (mounted) {
-                Navigator.pop(context); // Fecha dialog
-                Navigator.pop(context); // Sai da tela
+                Navigator.pop(context); 
+                Navigator.pop(context); 
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -250,14 +246,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.pause_circle_filled),
-            tooltip: 'Pausar / Sair sem finalizar',
+            tooltip: 'Pausar / Sair',
             onPressed: () => Navigator.pop(context),
           )
         ],
       ),
-      // --- NOVO BOTÃO FLUTUANTE PARA FINALIZAR A QUALQUER MOMENTO ---
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0), // Acima da lista se necessário
+        padding: const EdgeInsets.only(bottom: 80.0), 
         child: FloatingActionButton.extended(
           onPressed: _manualFinish,
           icon: const Icon(Icons.check_circle_outline),
@@ -267,12 +262,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         ),
       ),
       body: SafeArea(
-        // Usamos Stack para permitir o overlay do Timer Expandido
         child: Stack(
           children: [
             Column(
               children: [
-                // --- BARRA DE TIMERS DO TOPO ---
+                // --- BARRA DE STATUS (TIMERS + VOLUME) ---
                 _buildTopBar(context, globalTime, isNeon),
 
                 // --- LISTA DE EXERCÍCIOS ---
@@ -282,8 +276,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       : _exercises.isEmpty
                           ? const Center(child: Text('Nenhum exercício neste grupo.'))
                           : ListView.builder(
-                              // Padding extra no final para o FAB não cobrir o último item
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), 
                               itemCount: _exercises.length,
                               itemBuilder: (context, index) {
                                 return _ExerciseItem(
@@ -293,6 +286,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                     _startRestTimer(seconds);
                                     _checkOverallCompletion();
                                   },
+                                  // Passamos o callback para recalcular o volume
+                                  onSetUpdated: _recalcVolume,
                                   isNeon: isNeon,
                                 );
                               },
@@ -301,7 +296,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               ],
             ),
 
-            // --- OVERLAY: TIMER EXPANDIDO (Aparência Antiga) ---
+            // --- OVERLAY: TIMER EXPANDIDO ---
             if (_timerViewMode == TimerViewMode.expanded)
               _buildExpandedTimerOverlay(isNeon),
           ],
@@ -312,7 +307,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   // --- WIDGETS DE UI ---
 
-  // Barra Superior (Contém o timer minimizado se necessário)
   Widget _buildTopBar(BuildContext context, String globalTime, bool isNeon) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -321,13 +315,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               color: AppColors.neonCard,
               border: Border(
                 bottom: BorderSide(
-                  color: _timerViewMode == TimerViewMode.minimized ? Colors.blueAccent : AppColors.neonPurple,
+                  color: _isResting ? Colors.blueAccent : AppColors.neonPurple,
                   width: 2,
                 ),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (_timerViewMode == TimerViewMode.minimized ? Colors.blueAccent : AppColors.neonPurple).withOpacity(0.3),
+                  color: (_isResting ? Colors.blueAccent : AppColors.neonPurple).withOpacity(0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -342,31 +336,29 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Timer do Grupo
-          _buildTimerColumn(
+          // 1. Timer Grupo
+          _buildInfoColumn(
             context,
             'TEMPO GRUPO',
             _formatDuration(_groupDuration),
             isNeon ? AppColors.neonGreen : null,
           ),
 
-          // MEIO: Timer Minimizado OU Divisor
+          // 2. MEIO: Timer de Descanso OU Volume Total
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-              child: _timerViewMode == TimerViewMode.minimized
-                  ? _buildMinimizedTimerWidget(isNeon)
-                  : Container(
-                      height: 30,
-                      alignment: Alignment.center,
-                      child: Container(width: 1, color: Colors.grey.withOpacity(0.5)),
-                    ),
+              child: _isResting
+                  ? (_timerViewMode == TimerViewMode.minimized 
+                      ? _buildMinimizedTimerWidget(isNeon) 
+                      : const SizedBox.shrink()) 
+                  : _buildVolumeWidget(isNeon),
             ),
           ),
 
-          // Timer Total
-          _buildTimerColumn(
+          // 3. Timer Total
+          _buildInfoColumn(
             context,
             'TEMPO TOTAL',
             globalTime,
@@ -377,7 +369,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
   }
 
-  Widget _buildTimerColumn(BuildContext context, String label, String time, Color? color) {
+  Widget _buildInfoColumn(BuildContext context, String label, String value, Color? color) {
     return SizedBox(
       width: 80,
       child: Column(
@@ -389,7 +381,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            time,
+            value,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -403,16 +395,53 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
   }
 
-  // --- TIMER MINIMIZADO (Topo) ---
+  Widget _buildVolumeWidget(bool isNeon) {
+    String volumeText;
+    String unit;
+    
+    if (_currentTotalVolume >= 1000) {
+      volumeText = (_currentTotalVolume / 1000).toStringAsFixed(2);
+      unit = 'TONELADAS';
+    } else {
+      volumeText = _currentTotalVolume.toStringAsFixed(0);
+      unit = 'KG TOTAL';
+    }
+
+    return Container(
+      key: const ValueKey('volumeDisplay'),
+      child: Column(
+        children: [
+          Text(
+            unit,
+            style: TextStyle(
+              fontSize: 9, 
+              fontWeight: FontWeight.bold, 
+              color: isNeon ? Colors.grey[400] : Colors.grey[700],
+              letterSpacing: 0.5
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            volumeText,
+            style: TextStyle(
+              fontSize: 20, 
+              fontWeight: FontWeight.w900,
+              color: isNeon ? Colors.white : Colors.black87,
+              shadows: isNeon ? [Shadow(color: Colors.white.withOpacity(0.5), blurRadius: 10)] : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMinimizedTimerWidget(bool isNeon) {
     return GestureDetector(
-      // GESTO: Arrastar para BAIXO expande
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity! > 0) {
           setState(() => _timerViewMode = TimerViewMode.expanded);
         }
       },
-      // GESTO: Clicar também expande
       onTap: () => setState(() => _timerViewMode = TimerViewMode.expanded),
       child: Container(
         key: const ValueKey('minimizedTimer'),
@@ -446,15 +475,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
   }
 
-  // --- TIMER EXPANDIDO (Overlay / Aparência Antiga) ---
   Widget _buildExpandedTimerOverlay(bool isNeon) {
     return Container(
-      color: Colors.black.withOpacity(0.7), // Fundo escuro transparente (Modal)
+      color: Colors.black.withOpacity(0.7),
       child: Center(
         child: GestureDetector(
-          // GESTO: Arrastar para CIMA minimiza
           onVerticalDragEnd: (details) {
-            if (details.primaryVelocity! < 0) { // Negativo = Cima
+            if (details.primaryVelocity! < 0) {
               setState(() => _timerViewMode = TimerViewMode.minimized);
             }
           },
@@ -479,7 +506,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Indicador de arraste
                 Container(
                   width: 40,
                   height: 4,
@@ -543,11 +569,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 }
 
-// Widget da Série Individual (Mantido igual)
+// Widget da Série Individual
 class _ExerciseItem extends StatefulWidget {
   final Exercise exercise;
   final VoidCallback onCheckCompletion;
   final Function(int) onStartRestTimer;
+  final VoidCallback onSetUpdated; // Variável que faltava!
   final bool isNeon;
 
   const _ExerciseItem({
@@ -555,6 +582,7 @@ class _ExerciseItem extends StatefulWidget {
     required this.exercise,
     required this.onCheckCompletion,
     required this.onStartRestTimer,
+    required this.onSetUpdated, // Requerida no construtor
     required this.isNeon,
   }) : super(key: key);
 
@@ -622,13 +650,16 @@ class _ExerciseItemState extends State<_ExerciseItem> {
                 onSeriesCompleted: () {
                   widget.onStartRestTimer(widget.exercise.intervalSeconds);
                 },
-                onSave: () => _loadData(),
+                onSave: () {
+                  _loadData();
+                  widget.onSetUpdated(); // Chamada que dava erro agora funcionará
+                },
               )).toList(),
             ),
             
             const Divider(height: 24, thickness: 1),
             
-            Padding(
+             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,6 +749,7 @@ class _ExerciseItemState extends State<_ExerciseItem> {
   }
 }
 
+// Widget da Série Individual (Row)
 class _SeriesRow extends StatefulWidget {
   final ExerciseSeries serie;
   final bool isUnilateral;
@@ -815,7 +847,7 @@ class _SeriesRowState extends State<_SeriesRow> {
       }
     }
     
-    widget.onSave();
+    widget.onSave(); // Dispara atualização do volume
   }
 
   @override
