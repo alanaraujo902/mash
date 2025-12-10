@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/workout_provider.dart';
 import '../providers/theme_provider.dart';
-import '../providers/muscle_group_provider.dart'; // Para converter cor hexa
+import '../providers/muscle_group_provider.dart';
 import '../widgets/neon_card.dart';
 import '../utils/app_colors.dart';
 
@@ -102,27 +102,14 @@ class _MuscleGroupHistoryCard extends StatelessWidget {
     required this.isNeon,
   }) : super(key: key);
 
-  Color _parseColor(String hexColor) {
-    try {
-      String hex = hexColor.replaceAll('#', '');
-      if (hex.length == 6) {
-        hex = 'FF$hex'; // Adiciona alpha se não tiver
-      }
-      return Color(int.parse(hex, radix: 16));
-    } catch (e) {
-      return Colors.grey; // Fallback
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Helper para cor
-    final groupColor = _parseColor(group.color);
+    final groupColor = context.read<MuscleGroupProvider>().getColorFromHex(group.color);
 
     return NeonCard(
       isNeon: isNeon,
       margin: const EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.zero, // Remove padding interno para o ExpansionTile ir até a borda
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -176,7 +163,6 @@ class _MuscleGroupHistoryCard extends StatelessWidget {
                 iconColor: isNeon ? AppColors.neonGreen : null,
                 collapsedIconColor: isNeon ? Colors.grey : null,
                 children: [
-                  // LISTA DE DATAS (HISTÓRICO)
                   Container(
                     width: double.infinity,
                     color: isNeon ? Colors.black26 : Colors.grey.shade50,
@@ -211,23 +197,55 @@ class _HistoryRecordRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yy');
     
+    // Formatação da Tonelagem
+    String volumeText;
+    if (record.totalVolume >= 1000) {
+      volumeText = '${(record.totalVolume / 1000).toStringAsFixed(2)}t';
+    } else {
+      volumeText = '${record.totalVolume.toStringAsFixed(0)}kg';
+    }
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Linha de Data e Resumo
+          // LINHA SUPERIOR: Data + Volume (Esq)  |  Max Weight (Dir)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                dateFormat.format(record.date),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isNeon ? AppColors.neonGreen : Colors.blue[800],
-                ),
+              // LADO ESQUERDO: Data e Volume
+              Row(
+                children: [
+                  Text(
+                    dateFormat.format(record.date),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isNeon ? AppColors.neonGreen : Colors.blue[800],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '•', // Separador
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isNeon ? Colors.grey[600] : Colors.grey[400],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vol: $volumeText', // <--- NOVO: VOLUME AQUI
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isNeon ? Colors.grey[400] : Colors.grey[700],
+                    ),
+                  ),
+                ],
               ),
+
+              // LADO DIREITO: Carga Máxima
               Text(
                 'Max: ${record.maxWeight.toStringAsFixed(1).replaceAll('.0', '')}kg',
                 style: TextStyle(
@@ -238,7 +256,8 @@ class _HistoryRecordRow extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          
+          const SizedBox(height: 6),
           
           // CHIPS COM AS SÉRIES
           if (record.setDetails.isNotEmpty)
