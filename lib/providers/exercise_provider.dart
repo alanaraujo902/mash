@@ -257,6 +257,7 @@ class ExerciseProvider extends ChangeNotifier {
               reps: reps,
               weightKg: weight,
               seriesOrder: orderCounter++,
+              feedback: s.feedback, // Copiando o feedback
             ),
           );
         }
@@ -270,6 +271,7 @@ class ExerciseProvider extends ChangeNotifier {
         final resetSeries = series.copyWith(
           isCompleted: false,
           completedAt: const Value(null),
+          feedback: const Value(null), // Limpar feedback
           // weightKg e actualReps não são passados, então são mantidos automaticamente
         );
 
@@ -280,6 +282,15 @@ class ExerciseProvider extends ChangeNotifier {
 
     // Notifica a tela para recarregar se necessário
     notifyListeners();
+  }
+
+  // NOVO: Salvar Feedback na Série (Temporário)
+  Future<void> saveSeriesFeedback(String seriesId, String feedbackJson) async {
+    await (database.update(database.exerciseSeriesList)
+      ..where((tbl) => tbl.id.equals(seriesId)))
+      .write(ExerciseSeriesListCompanion(
+        feedback: Value(feedbackJson),
+      ));
   }
 
   // NOVO: Calcula o volume total (tonelagem) atual da sessão em tempo real

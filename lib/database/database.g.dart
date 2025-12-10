@@ -1699,6 +1699,17 @@ class $ExerciseSeriesListTable extends ExerciseSeriesList
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _feedbackMeta = const VerificationMeta(
+    'feedback',
+  );
+  @override
+  late final GeneratedColumn<String> feedback = GeneratedColumn<String>(
+    'feedback',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1708,6 +1719,7 @@ class $ExerciseSeriesListTable extends ExerciseSeriesList
     weightKg,
     completedAt,
     isCompleted,
+    feedback,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1775,6 +1787,12 @@ class $ExerciseSeriesListTable extends ExerciseSeriesList
         ),
       );
     }
+    if (data.containsKey('feedback')) {
+      context.handle(
+        _feedbackMeta,
+        feedback.isAcceptableOrUnknown(data['feedback']!, _feedbackMeta),
+      );
+    }
     return context;
   }
 
@@ -1812,6 +1830,10 @@ class $ExerciseSeriesListTable extends ExerciseSeriesList
         DriftSqlType.bool,
         data['${effectivePrefix}is_completed'],
       )!,
+      feedback: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}feedback'],
+      ),
     );
   }
 
@@ -1829,6 +1851,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
   final double? weightKg;
   final DateTime? completedAt;
   final bool isCompleted;
+  final String? feedback;
   const ExerciseSeries({
     required this.id,
     required this.exerciseId,
@@ -1837,6 +1860,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
     this.weightKg,
     this.completedAt,
     required this.isCompleted,
+    this.feedback,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1854,6 +1878,9 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
       map['completed_at'] = Variable<DateTime>(completedAt);
     }
     map['is_completed'] = Variable<bool>(isCompleted);
+    if (!nullToAbsent || feedback != null) {
+      map['feedback'] = Variable<String>(feedback);
+    }
     return map;
   }
 
@@ -1872,6 +1899,9 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
           ? const Value.absent()
           : Value(completedAt),
       isCompleted: Value(isCompleted),
+      feedback: feedback == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedback),
     );
   }
 
@@ -1888,6 +1918,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
       weightKg: serializer.fromJson<double?>(json['weightKg']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      feedback: serializer.fromJson<String?>(json['feedback']),
     );
   }
   @override
@@ -1901,6 +1932,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
       'weightKg': serializer.toJson<double?>(weightKg),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
       'isCompleted': serializer.toJson<bool>(isCompleted),
+      'feedback': serializer.toJson<String?>(feedback),
     };
   }
 
@@ -1912,6 +1944,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
     Value<double?> weightKg = const Value.absent(),
     Value<DateTime?> completedAt = const Value.absent(),
     bool? isCompleted,
+    Value<String?> feedback = const Value.absent(),
   }) => ExerciseSeries(
     id: id ?? this.id,
     exerciseId: exerciseId ?? this.exerciseId,
@@ -1920,6 +1953,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
     weightKg: weightKg.present ? weightKg.value : this.weightKg,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
     isCompleted: isCompleted ?? this.isCompleted,
+    feedback: feedback.present ? feedback.value : this.feedback,
   );
   ExerciseSeries copyWithCompanion(ExerciseSeriesListCompanion data) {
     return ExerciseSeries(
@@ -1940,6 +1974,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
           : this.isCompleted,
+      feedback: data.feedback.present ? data.feedback.value : this.feedback,
     );
   }
 
@@ -1952,7 +1987,8 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
           ..write('actualReps: $actualReps, ')
           ..write('weightKg: $weightKg, ')
           ..write('completedAt: $completedAt, ')
-          ..write('isCompleted: $isCompleted')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('feedback: $feedback')
           ..write(')'))
         .toString();
   }
@@ -1966,6 +2002,7 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
     weightKg,
     completedAt,
     isCompleted,
+    feedback,
   );
   @override
   bool operator ==(Object other) =>
@@ -1977,7 +2014,8 @@ class ExerciseSeries extends DataClass implements Insertable<ExerciseSeries> {
           other.actualReps == this.actualReps &&
           other.weightKg == this.weightKg &&
           other.completedAt == this.completedAt &&
-          other.isCompleted == this.isCompleted);
+          other.isCompleted == this.isCompleted &&
+          other.feedback == this.feedback);
 }
 
 class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
@@ -1988,6 +2026,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
   final Value<double?> weightKg;
   final Value<DateTime?> completedAt;
   final Value<bool> isCompleted;
+  final Value<String?> feedback;
   final Value<int> rowid;
   const ExerciseSeriesListCompanion({
     this.id = const Value.absent(),
@@ -1997,6 +2036,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
     this.weightKg = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.isCompleted = const Value.absent(),
+    this.feedback = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExerciseSeriesListCompanion.insert({
@@ -2007,6 +2047,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
     this.weightKg = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.isCompleted = const Value.absent(),
+    this.feedback = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        exerciseId = Value(exerciseId),
@@ -2019,6 +2060,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
     Expression<double>? weightKg,
     Expression<DateTime>? completedAt,
     Expression<bool>? isCompleted,
+    Expression<String>? feedback,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2029,6 +2071,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
       if (weightKg != null) 'weight_kg': weightKg,
       if (completedAt != null) 'completed_at': completedAt,
       if (isCompleted != null) 'is_completed': isCompleted,
+      if (feedback != null) 'feedback': feedback,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2041,6 +2084,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
     Value<double?>? weightKg,
     Value<DateTime?>? completedAt,
     Value<bool>? isCompleted,
+    Value<String?>? feedback,
     Value<int>? rowid,
   }) {
     return ExerciseSeriesListCompanion(
@@ -2051,6 +2095,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
       weightKg: weightKg ?? this.weightKg,
       completedAt: completedAt ?? this.completedAt,
       isCompleted: isCompleted ?? this.isCompleted,
+      feedback: feedback ?? this.feedback,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2079,6 +2124,9 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
     if (isCompleted.present) {
       map['is_completed'] = Variable<bool>(isCompleted.value);
     }
+    if (feedback.present) {
+      map['feedback'] = Variable<String>(feedback.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2095,6 +2143,7 @@ class ExerciseSeriesListCompanion extends UpdateCompanion<ExerciseSeries> {
           ..write('weightKg: $weightKg, ')
           ..write('completedAt: $completedAt, ')
           ..write('isCompleted: $isCompleted, ')
+          ..write('feedback: $feedback, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3495,6 +3544,17 @@ class $WorkoutHistorySetsTable extends WorkoutHistorySets
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _feedbackMeta = const VerificationMeta(
+    'feedback',
+  );
+  @override
+  late final GeneratedColumn<String> feedback = GeneratedColumn<String>(
+    'feedback',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3502,6 +3562,7 @@ class $WorkoutHistorySetsTable extends WorkoutHistorySets
     reps,
     weightKg,
     seriesOrder,
+    feedback,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3558,6 +3619,12 @@ class $WorkoutHistorySetsTable extends WorkoutHistorySets
     } else if (isInserting) {
       context.missing(_seriesOrderMeta);
     }
+    if (data.containsKey('feedback')) {
+      context.handle(
+        _feedbackMeta,
+        feedback.isAcceptableOrUnknown(data['feedback']!, _feedbackMeta),
+      );
+    }
     return context;
   }
 
@@ -3587,6 +3654,10 @@ class $WorkoutHistorySetsTable extends WorkoutHistorySets
         DriftSqlType.int,
         data['${effectivePrefix}series_order'],
       )!,
+      feedback: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}feedback'],
+      ),
     );
   }
 
@@ -3603,12 +3674,14 @@ class WorkoutHistorySet extends DataClass
   final int reps;
   final double weightKg;
   final int seriesOrder;
+  final String? feedback;
   const WorkoutHistorySet({
     required this.id,
     required this.workoutHistoryId,
     required this.reps,
     required this.weightKg,
     required this.seriesOrder,
+    this.feedback,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3618,6 +3691,9 @@ class WorkoutHistorySet extends DataClass
     map['reps'] = Variable<int>(reps);
     map['weight_kg'] = Variable<double>(weightKg);
     map['series_order'] = Variable<int>(seriesOrder);
+    if (!nullToAbsent || feedback != null) {
+      map['feedback'] = Variable<String>(feedback);
+    }
     return map;
   }
 
@@ -3628,6 +3704,9 @@ class WorkoutHistorySet extends DataClass
       reps: Value(reps),
       weightKg: Value(weightKg),
       seriesOrder: Value(seriesOrder),
+      feedback: feedback == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedback),
     );
   }
 
@@ -3642,6 +3721,7 @@ class WorkoutHistorySet extends DataClass
       reps: serializer.fromJson<int>(json['reps']),
       weightKg: serializer.fromJson<double>(json['weightKg']),
       seriesOrder: serializer.fromJson<int>(json['seriesOrder']),
+      feedback: serializer.fromJson<String?>(json['feedback']),
     );
   }
   @override
@@ -3653,6 +3733,7 @@ class WorkoutHistorySet extends DataClass
       'reps': serializer.toJson<int>(reps),
       'weightKg': serializer.toJson<double>(weightKg),
       'seriesOrder': serializer.toJson<int>(seriesOrder),
+      'feedback': serializer.toJson<String?>(feedback),
     };
   }
 
@@ -3662,12 +3743,14 @@ class WorkoutHistorySet extends DataClass
     int? reps,
     double? weightKg,
     int? seriesOrder,
+    Value<String?> feedback = const Value.absent(),
   }) => WorkoutHistorySet(
     id: id ?? this.id,
     workoutHistoryId: workoutHistoryId ?? this.workoutHistoryId,
     reps: reps ?? this.reps,
     weightKg: weightKg ?? this.weightKg,
     seriesOrder: seriesOrder ?? this.seriesOrder,
+    feedback: feedback.present ? feedback.value : this.feedback,
   );
   WorkoutHistorySet copyWithCompanion(WorkoutHistorySetsCompanion data) {
     return WorkoutHistorySet(
@@ -3680,6 +3763,7 @@ class WorkoutHistorySet extends DataClass
       seriesOrder: data.seriesOrder.present
           ? data.seriesOrder.value
           : this.seriesOrder,
+      feedback: data.feedback.present ? data.feedback.value : this.feedback,
     );
   }
 
@@ -3690,14 +3774,15 @@ class WorkoutHistorySet extends DataClass
           ..write('workoutHistoryId: $workoutHistoryId, ')
           ..write('reps: $reps, ')
           ..write('weightKg: $weightKg, ')
-          ..write('seriesOrder: $seriesOrder')
+          ..write('seriesOrder: $seriesOrder, ')
+          ..write('feedback: $feedback')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, workoutHistoryId, reps, weightKg, seriesOrder);
+      Object.hash(id, workoutHistoryId, reps, weightKg, seriesOrder, feedback);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3706,7 +3791,8 @@ class WorkoutHistorySet extends DataClass
           other.workoutHistoryId == this.workoutHistoryId &&
           other.reps == this.reps &&
           other.weightKg == this.weightKg &&
-          other.seriesOrder == this.seriesOrder);
+          other.seriesOrder == this.seriesOrder &&
+          other.feedback == this.feedback);
 }
 
 class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
@@ -3715,6 +3801,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
   final Value<int> reps;
   final Value<double> weightKg;
   final Value<int> seriesOrder;
+  final Value<String?> feedback;
   final Value<int> rowid;
   const WorkoutHistorySetsCompanion({
     this.id = const Value.absent(),
@@ -3722,6 +3809,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
     this.reps = const Value.absent(),
     this.weightKg = const Value.absent(),
     this.seriesOrder = const Value.absent(),
+    this.feedback = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WorkoutHistorySetsCompanion.insert({
@@ -3730,6 +3818,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
     required int reps,
     required double weightKg,
     required int seriesOrder,
+    this.feedback = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        workoutHistoryId = Value(workoutHistoryId),
@@ -3742,6 +3831,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
     Expression<int>? reps,
     Expression<double>? weightKg,
     Expression<int>? seriesOrder,
+    Expression<String>? feedback,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3750,6 +3840,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
       if (reps != null) 'reps': reps,
       if (weightKg != null) 'weight_kg': weightKg,
       if (seriesOrder != null) 'series_order': seriesOrder,
+      if (feedback != null) 'feedback': feedback,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3760,6 +3851,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
     Value<int>? reps,
     Value<double>? weightKg,
     Value<int>? seriesOrder,
+    Value<String?>? feedback,
     Value<int>? rowid,
   }) {
     return WorkoutHistorySetsCompanion(
@@ -3768,6 +3860,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
       reps: reps ?? this.reps,
       weightKg: weightKg ?? this.weightKg,
       seriesOrder: seriesOrder ?? this.seriesOrder,
+      feedback: feedback ?? this.feedback,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3790,6 +3883,9 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
     if (seriesOrder.present) {
       map['series_order'] = Variable<int>(seriesOrder.value);
     }
+    if (feedback.present) {
+      map['feedback'] = Variable<String>(feedback.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3804,6 +3900,7 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
           ..write('reps: $reps, ')
           ..write('weightKg: $weightKg, ')
           ..write('seriesOrder: $seriesOrder, ')
+          ..write('feedback: $feedback, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6017,6 +6114,7 @@ typedef $$ExerciseSeriesListTableCreateCompanionBuilder =
       Value<double?> weightKg,
       Value<DateTime?> completedAt,
       Value<bool> isCompleted,
+      Value<String?> feedback,
       Value<int> rowid,
     });
 typedef $$ExerciseSeriesListTableUpdateCompanionBuilder =
@@ -6028,6 +6126,7 @@ typedef $$ExerciseSeriesListTableUpdateCompanionBuilder =
       Value<double?> weightKg,
       Value<DateTime?> completedAt,
       Value<bool> isCompleted,
+      Value<String?> feedback,
       Value<int> rowid,
     });
 
@@ -6103,6 +6202,11 @@ class $$ExerciseSeriesListTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get feedback => $composableBuilder(
+    column: $table.feedback,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ExercisesTableFilterComposer get exerciseId {
     final $$ExercisesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -6166,6 +6270,11 @@ class $$ExerciseSeriesListTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get feedback => $composableBuilder(
+    column: $table.feedback,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ExercisesTableOrderingComposer get exerciseId {
     final $$ExercisesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -6224,6 +6333,9 @@ class $$ExerciseSeriesListTableAnnotationComposer
     column: $table.isCompleted,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get feedback =>
+      $composableBuilder(column: $table.feedback, builder: (column) => column);
 
   $$ExercisesTableAnnotationComposer get exerciseId {
     final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
@@ -6289,6 +6401,7 @@ class $$ExerciseSeriesListTableTableManager
                 Value<double?> weightKg = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
+                Value<String?> feedback = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseSeriesListCompanion(
                 id: id,
@@ -6298,6 +6411,7 @@ class $$ExerciseSeriesListTableTableManager
                 weightKg: weightKg,
                 completedAt: completedAt,
                 isCompleted: isCompleted,
+                feedback: feedback,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6309,6 +6423,7 @@ class $$ExerciseSeriesListTableTableManager
                 Value<double?> weightKg = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
+                Value<String?> feedback = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseSeriesListCompanion.insert(
                 id: id,
@@ -6318,6 +6433,7 @@ class $$ExerciseSeriesListTableTableManager
                 weightKg: weightKg,
                 completedAt: completedAt,
                 isCompleted: isCompleted,
+                feedback: feedback,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -7877,6 +7993,7 @@ typedef $$WorkoutHistorySetsTableCreateCompanionBuilder =
       required int reps,
       required double weightKg,
       required int seriesOrder,
+      Value<String?> feedback,
       Value<int> rowid,
     });
 typedef $$WorkoutHistorySetsTableUpdateCompanionBuilder =
@@ -7886,6 +8003,7 @@ typedef $$WorkoutHistorySetsTableUpdateCompanionBuilder =
       Value<int> reps,
       Value<double> weightKg,
       Value<int> seriesOrder,
+      Value<String?> feedback,
       Value<int> rowid,
     });
 
@@ -7954,6 +8072,11 @@ class $$WorkoutHistorySetsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get feedback => $composableBuilder(
+    column: $table.feedback,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$WorkoutHistoriesTableFilterComposer get workoutHistoryId {
     final $$WorkoutHistoriesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -8007,6 +8130,11 @@ class $$WorkoutHistorySetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get feedback => $composableBuilder(
+    column: $table.feedback,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$WorkoutHistoriesTableOrderingComposer get workoutHistoryId {
     final $$WorkoutHistoriesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8053,6 +8181,9 @@ class $$WorkoutHistorySetsTableAnnotationComposer
     column: $table.seriesOrder,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get feedback =>
+      $composableBuilder(column: $table.feedback, builder: (column) => column);
 
   $$WorkoutHistoriesTableAnnotationComposer get workoutHistoryId {
     final $$WorkoutHistoriesTableAnnotationComposer composer = $composerBuilder(
@@ -8116,6 +8247,7 @@ class $$WorkoutHistorySetsTableTableManager
                 Value<int> reps = const Value.absent(),
                 Value<double> weightKg = const Value.absent(),
                 Value<int> seriesOrder = const Value.absent(),
+                Value<String?> feedback = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkoutHistorySetsCompanion(
                 id: id,
@@ -8123,6 +8255,7 @@ class $$WorkoutHistorySetsTableTableManager
                 reps: reps,
                 weightKg: weightKg,
                 seriesOrder: seriesOrder,
+                feedback: feedback,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8132,6 +8265,7 @@ class $$WorkoutHistorySetsTableTableManager
                 required int reps,
                 required double weightKg,
                 required int seriesOrder,
+                Value<String?> feedback = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkoutHistorySetsCompanion.insert(
                 id: id,
@@ -8139,6 +8273,7 @@ class $$WorkoutHistorySetsTableTableManager
                 reps: reps,
                 weightKg: weightKg,
                 seriesOrder: seriesOrder,
+                feedback: feedback,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

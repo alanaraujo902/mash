@@ -8,6 +8,7 @@ import '../providers/workout_timer_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/neon_card.dart';
 import '../utils/app_colors.dart';
+import '../widgets/feedback_evaluator.dart';
 import 'dart:async';
 import 'dart:ui';
 
@@ -52,6 +53,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // --- Tonelagem Acumulada ---
   double _currentTotalVolume = 0.0;
 
+  // NOVO: Para saber onde salvar o feedback
+  String? _currentRestSeriesId;
+
   @override
   void initState() {
     super.initState();
@@ -88,11 +92,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   // --- Lógica do Timer de Descanso ---
-  void _startRestTimer(int seconds) {
+  void _startRestTimer(int seconds, String? seriesId) {
     _restTimer?.cancel();
     setState(() {
       _restSecondsRemaining = seconds;
       _timerViewMode = TimerViewMode.expanded;
+      _currentRestSeriesId = seriesId;
     });
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -120,6 +125,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     setState(() {
       _restSecondsRemaining += seconds;
     });
+  }
+
+  // NOVO: Callback para salvar o feedback
+  void _onFeedbackChanged(String jsonFeedback) {
+    if (_currentRestSeriesId != null) {
+      context.read<ExerciseProvider>().saveSeriesFeedback(_currentRestSeriesId!, jsonFeedback);
+    }
   }
 
   @override
@@ -278,8 +290,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                 return _ExerciseItem(
                                   exercise: _exercises[index],
                                   onCheckCompletion: _checkOverallCompletion,
-                                  onStartRestTimer: (seconds) {
-                                    _startRestTimer(seconds);
+                                  onStartRestTimer: (int seconds, String seriesId) {
+                                    _startRestTimer(seconds, seriesId);
                                     _checkOverallCompletion();
                                   },
                                   // Passamos o callback para recalcular o volume
@@ -481,8 +493,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               setState(() => _timerViewMode = TimerViewMode.minimized);
             }
           },
-          child: Container(
-            margin: const EdgeInsets.all(24),
+            child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: isNeon ? AppColors.neonCard : Colors.white,
@@ -499,64 +511,68 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 )
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.timer, color: Colors.blueAccent),
-                    SizedBox(width: 10),
-                    Text(
-                      'Descanso',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            // ADICIONAR SCROLL AQUI
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  '$_restSecondsRemaining',
-                  style: const TextStyle(
-                    fontSize: 80,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
-                ),
-                const Text('segundos restantes'),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () => _addRestTime(10),
-                      child: const Text('+10s', style: TextStyle(fontSize: 18)),
+                  
+                  // TIMER GRANDE
+                  Text(
+                    '$_restSecondsRemaining',
+                    style: const TextStyle(
+                      fontSize: 72, // Levemente menor para caber conteúdo
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
-                    ElevatedButton(
-                      onPressed: _stopRestTimer,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  const Text('segundos restantes'),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // BOTÕES DO TIMER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => _addRestTime(10),
+                        child: const Text('+10s', style: TextStyle(fontSize: 18)),
                       ),
-                      child: const Text('Pular / Continuar'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Arraste para cima para minimizar',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+                      ElevatedButton(
+                        onPressed: _stopRestTimer,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: const Text('Pular / Continuar'),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- AQUI ENTRA O AVALIADOR ---
+                  FeedbackEvaluator(
+                    isNeon: isNeon,
+                    onFeedbackChanged: _onFeedbackChanged,
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Arraste para cima para minimizar',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -569,7 +585,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 class _ExerciseItem extends StatefulWidget {
   final Exercise exercise;
   final VoidCallback onCheckCompletion;
-  final Function(int) onStartRestTimer;
+  final Function(int, String) onStartRestTimer; // ALTERADO: Recebe int e String (ID)
   final VoidCallback onSetUpdated; // Variável que faltava!
   final bool isNeon;
 
@@ -644,7 +660,8 @@ class _ExerciseItemState extends State<_ExerciseItem> {
                 serie: serie,
                 isUnilateral: widget.exercise.isUnilateral, 
                 onSeriesCompleted: () {
-                  widget.onStartRestTimer(widget.exercise.intervalSeconds);
+                  // PASSAR O ID DA SÉRIE AQUI
+                  widget.onStartRestTimer(widget.exercise.intervalSeconds, serie.id);
                 },
                 onSave: () {
                   _loadData();

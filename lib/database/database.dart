@@ -69,6 +69,9 @@ class ExerciseSeriesList extends Table {
   DateTimeColumn get completedAt => dateTime().nullable()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   
+  // Campo temporário para feedback
+  TextColumn get feedback => text().nullable()();
+  
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -110,6 +113,9 @@ class WorkoutHistorySets extends Table {
   RealColumn get weightKg => real()();
   IntColumn get seriesOrder => integer()(); // Para saber se foi a 1ª, 2ª, 3ª série...
   
+  // Campo permanente para feedback
+  TextColumn get feedback => text().nullable()();
+  
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -140,9 +146,9 @@ class MuscleRecoveries extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // 1. AUMENTE A VERSÃO PARA 5
+  // Versão atualizada para 7 (com feedback)
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -166,6 +172,18 @@ class AppDatabase extends _$AppDatabase {
         if (from < 5) {
           // Adiciona a coluna totalVolumeLoad na tabela workoutHistories
           await m.addColumn(workoutHistories, workoutHistories.totalVolumeLoad);
+        }
+        
+        if (from < 6) {
+          try { 
+            await m.createTable(muscleRecoveries); 
+          } catch (_) {}
+        }
+        
+        // Migração v7: Adicionar colunas de feedback
+        if (from < 7) {
+          await m.addColumn(exerciseSeriesList, exerciseSeriesList.feedback);
+          await m.addColumn(workoutHistorySets, workoutHistorySets.feedback);
         }
       },
     );
