@@ -168,32 +168,52 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
     if (isAllDone && mounted) {
       _stopRestTimer(); 
-      _showCompletionDialog();
+      // Chama o dialog indicando que está 100% completo
+      _showCompletionDialog(isComplete: true);
     }
   }
 
-  void _showCompletionDialog() {
+  // Lógica do botão manual "Finalizar"
+  void _manualFinish() async {
+    final provider = context.read<ExerciseProvider>();
+    final isAllDone = await provider.checkAllExercisesCompleted(widget.sessionMuscleGroup.id);
+    
+    // Chama o dialog, passando o status real
+    _showCompletionDialog(isComplete: isAllDone);
+  }
+
+  // Dialog unificado (serve tanto para completo quanto para parcial)
+  void _showCompletionDialog({required bool isComplete}) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('🎉 Treino Concluído!'),
+        title: Text(isComplete ? '🎉 Treino Concluído!' : '⚠️ Finalizar Parcialmente?'),
         content: Text(
-          'Tempo do grupo: ${_formatDuration(_groupDuration)}\n'
-          'Parabéns! Você completou todas as séries.\nDeseja finalizar o treino e salvar no histórico?',
+          'Tempo do grupo: ${_formatDuration(_groupDuration)}\n\n' +
+          (isComplete 
+            ? 'Parabéns! Você completou todas as séries.' 
+            : 'Você ainda tem séries pendentes. O que foi feito será salvo e o treino será encerrado.') +
+          '\n\nDeseja salvar no histórico?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), 
-            child: const Text('Revisar'),
+            onPressed: () => Navigator.pop(context), // Cancelar
+            child: const Text('Voltar / Revisar'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isComplete ? Colors.green : Colors.orange,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
+              // 1. Salvar no histórico
               await context.read<ExerciseProvider>().finishSessionMuscleGroup(
                 widget.sessionMuscleGroup.id,
                 widget.trainingSessionId,
               );
 
+              // 2. Marcar grupo muscular como FATIGADO
               if (mounted) {
                 await context.read<RecoveryProvider>().markAsFatigued(
                   widget.sessionMuscleGroup.muscleGroupId,
@@ -201,15 +221,18 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               }
 
               if (mounted) {
-                Navigator.pop(context); 
-                Navigator.pop(context); 
+                Navigator.pop(context); // Fecha dialog
+                Navigator.pop(context); // Sai da tela
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Grupo finalizado!')),
+                  SnackBar(
+                    content: Text(isComplete ? 'Treino finalizado com sucesso!' : 'Treino parcial salvo!'),
+                    backgroundColor: isComplete ? Colors.green : Colors.orange,
+                  ),
                 );
               }
             },
-            child: const Text('Finalizar'),
+            child: const Text('Confirmar Fim'),
           ),
         ],
       ),
@@ -227,10 +250,21 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.pause_circle_filled),
-            tooltip: 'Pausar Treino',
+            tooltip: 'Pausar / Sair sem finalizar',
             onPressed: () => Navigator.pop(context),
           )
         ],
+      ),
+      // --- NOVO BOTÃO FLUTUANTE PARA FINALIZAR A QUALQUER MOMENTO ---
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80.0), // Acima da lista se necessário
+        child: FloatingActionButton.extended(
+          onPressed: _manualFinish,
+          icon: const Icon(Icons.check_circle_outline),
+          label: const Text('Finalizar'),
+          backgroundColor: isNeon ? AppColors.neonGreen : Colors.green,
+          foregroundColor: isNeon ? Colors.black : Colors.white,
+        ),
       ),
       body: SafeArea(
         // Usamos Stack para permitir o overlay do Timer Expandido
@@ -248,7 +282,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       : _exercises.isEmpty
                           ? const Center(child: Text('Nenhum exercício neste grupo.'))
                           : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Espaço extra embaixo
+                              // Padding extra no final para o FAB não cobrir o último item
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                               itemCount: _exercises.length,
                               itemBuilder: (context, index) {
                                 return _ExerciseItem(
