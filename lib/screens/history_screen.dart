@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/workout_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/muscle_group_provider.dart'; // Para converter cor hexa
 import '../widgets/neon_card.dart';
 import '../utils/app_colors.dart';
 
@@ -14,18 +15,17 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  late Future<List<WorkoutSessionHistoryDTO>> _historyFuture;
+  late Future<List<MuscleGroupHistoryDTO>> _historyFuture;
 
   @override
   void initState() {
     super.initState();
-    // Carrega o histórico ao iniciar
-    _historyFuture = context.read<WorkoutProvider>().getFullHistory();
+    _loadData();
   }
 
-  Future<void> _refresh() async {
+  void _loadData() {
     setState(() {
-      _historyFuture = context.read<WorkoutProvider>().getFullHistory();
+      _historyFuture = context.read<WorkoutProvider>().getHistoryOrganizedByGroup();
     });
   }
 
@@ -35,15 +35,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Histórico de Treinos'),
+        title: const Text('Histórico por Exercício'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _refresh,
+            onPressed: _loadData,
           )
         ],
       ),
-      body: FutureBuilder<List<WorkoutSessionHistoryDTO>>(
+      body: FutureBuilder<List<MuscleGroupHistoryDTO>>(
         future: _historyFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -51,24 +51,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Erro ao carregar: ${snapshot.error}'));
+            return Center(child: Text('Erro: ${snapshot.error}'));
           }
 
-          final history = snapshot.data ?? [];
+          final groups = snapshot.data ?? [];
 
-          if (history.isEmpty) {
+          if (groups.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.history_toggle_off,
+                    Icons.history,
                     size: 64,
                     color: isNeon ? Colors.grey[700] : Colors.grey[400],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Nenhum treino finalizado ainda.',
+                    'Nenhum registro encontrado.',
                     style: TextStyle(
                       color: isNeon ? Colors.grey[400] : Colors.grey[600],
                     ),
@@ -78,16 +78,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: history.length,
-              itemBuilder: (context, index) {
-                final session = history[index];
-                return _HistoryCard(session: session, isNeon: isNeon);
-              },
-            ),
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index];
+              return _MuscleGroupHistoryCard(group: group, isNeon: isNeon);
+            },
           );
         },
       ),
@@ -95,139 +92,101 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-class _HistoryCard extends StatelessWidget {
-  final WorkoutSessionHistoryDTO session;
+class _MuscleGroupHistoryCard extends StatelessWidget {
+  final MuscleGroupHistoryDTO group;
   final bool isNeon;
 
-  const _HistoryCard({
+  const _MuscleGroupHistoryCard({
     Key? key,
-    required this.session,
+    required this.group,
     required this.isNeon,
   }) : super(key: key);
 
+  Color _parseColor(String hexColor) {
+    try {
+      String hex = hexColor.replaceAll('#', '');
+      if (hex.length == 6) {
+        hex = 'FF$hex'; // Adiciona alpha se não tiver
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (e) {
+      return Colors.grey; // Fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy • HH:mm');
-    final formattedDate = dateFormat.format(session.date);
+    // Helper para cor
+    final groupColor = _parseColor(group.color);
 
     return NeonCard(
       isNeon: isNeon,
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero, // Remove padding interno para o ExpansionTile ir até a borda
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // CABEÇALHO DO CARD (Data e Nome)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      formattedDate,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isNeon ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${session.sessionName} - ${session.groupName}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isNeon ? AppColors.neonGreen : Colors.black87,
-                      ),
-                    ),
-                  ],
+          // CABEÇALHO DO GRUPO MUSCULAR
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isNeon ? AppColors.neonPurple.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
                 ),
               ),
-              Icon(
-                Icons.check_circle,
-                color: isNeon ? AppColors.neonPurple : Colors.green,
-              ),
-            ],
-          ),
-          
-          Divider(
-            height: 24, 
-            color: isNeon ? Colors.white24 : Colors.grey[300],
-          ),
-
-          // LISTA DE EXERCÍCIOS
-          ...session.exercises.map((ex) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0), // Mais espaçamento
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // NOME DO EXERCÍCIO
-                  Row(
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        width: 4,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: isNeon ? AppColors.neonPurple : Colors.blue,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      Text(
-                        ex.exerciseName,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: isNeon ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Total Tonelagem (Opcional, discreto)
-                      Text(
-                        'Vol: ${(ex.totalVolume / 1000).toStringAsFixed(1)}t',
-                        style: TextStyle(
-                           fontSize: 11,
-                           color: isNeon ? Colors.grey[500] : Colors.grey[600],
-                        ),
-                      )
-                    ],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: groupColor,
+                  radius: 16,
+                  child: const Icon(Icons.fitness_center, size: 16, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  group.groupName,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isNeon ? AppColors.neonGreen : Colors.black87,
                   ),
-                  
-                  const SizedBox(height: 6),
+                ),
+              ],
+            ),
+          ),
 
-                  // LISTA DE SETS (Chips ou texto formatado)
-                  if (ex.setDetails.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: ex.setDetails.map((setInfo) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isNeon ? Colors.white.withOpacity(0.05) : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: isNeon ? Colors.white10 : Colors.grey[300]!,
-                            ),
-                          ),
-                          child: Text(
-                            setInfo, // Ex: "10x 20kg"
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: isNeon ? AppColors.neonGreen : Colors.black87,
-                            ),
-                          ),
-                        );
+          // LISTA DE EXERCÍCIOS (TOGGLES)
+          ...group.exercises.map((exercise) {
+            return Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                title: Text(
+                  exercise.exerciseName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isNeon ? Colors.white : Colors.black87,
+                  ),
+                ),
+                leading: Icon(
+                  Icons.show_chart, 
+                  color: isNeon ? AppColors.neonPurple : Colors.blueGrey,
+                  size: 20,
+                ),
+                iconColor: isNeon ? AppColors.neonGreen : null,
+                collapsedIconColor: isNeon ? Colors.grey : null,
+                children: [
+                  // LISTA DE DATAS (HISTÓRICO)
+                  Container(
+                    width: double.infinity,
+                    color: isNeon ? Colors.black26 : Colors.grey.shade50,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      children: exercise.records.map((record) {
+                        return _HistoryRecordRow(record: record, isNeon: isNeon);
                       }).toList(),
-                    )
-                  else
-                    Text(
-                      "Sem detalhes registrados",
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
                     ),
+                  ),
                 ],
               ),
             );
@@ -238,3 +197,87 @@ class _HistoryCard extends StatelessWidget {
   }
 }
 
+class _HistoryRecordRow extends StatelessWidget {
+  final ExerciseRecordDTO record;
+  final bool isNeon;
+
+  const _HistoryRecordRow({
+    Key? key,
+    required this.record,
+    required this.isNeon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('dd/MM/yy');
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Linha de Data e Resumo
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                dateFormat.format(record.date),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isNeon ? AppColors.neonGreen : Colors.blue[800],
+                ),
+              ),
+              Text(
+                'Max: ${record.maxWeight.toStringAsFixed(1).replaceAll('.0', '')}kg',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isNeon ? Colors.white70 : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          
+          // CHIPS COM AS SÉRIES
+          if (record.setDetails.isNotEmpty)
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: record.setDetails.map((setInfo) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isNeon ? AppColors.neonPurple.withOpacity(0.1) : Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isNeon ? AppColors.neonPurple.withOpacity(0.3) : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Text(
+                    setInfo,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isNeon ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            const Text(
+              "Resumo simples (antigo)",
+              style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Colors.grey),
+            ),
+            
+          Divider(
+            height: 16,
+            thickness: 0.5,
+            color: isNeon ? Colors.white10 : Colors.grey.shade200,
+          ),
+        ],
+      ),
+    );
+  }
+}
