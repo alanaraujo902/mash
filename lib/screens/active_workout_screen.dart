@@ -56,6 +56,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // NOVO: Para saber onde salvar o feedback
   String? _currentRestSeriesId;
 
+  // NOVO: Flag para segurar o dialog final enquanto avalia
+  bool _pendingCompletion = false;
+
   @override
   void initState() {
     super.initState();
@@ -119,6 +122,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       _restSecondsRemaining = 0;
       _timerViewMode = TimerViewMode.hidden;
     });
+
+    // NOVO: Se o treino estava marcado como completo, agora mostramos o dialog
+    if (_pendingCompletion) {
+      _showCompletionDialog(isComplete: true);
+    }
   }
 
   void _addRestTime(int seconds) {
@@ -181,8 +189,21 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     final isAllDone = await provider.checkAllExercisesCompleted(widget.sessionMuscleGroup.id);
 
     if (isAllDone && mounted) {
-      _stopRestTimer(); 
-      _showCompletionDialog(isComplete: true);
+      setState(() {
+        _pendingCompletion = true;
+      });
+
+      // SÓ mostra o dialog agora se NÃO estiver descansando/avaliando
+      if (!_isResting) {
+        _showCompletionDialog(isComplete: true);
+      }
+      // Se estiver descansando (_isResting == true), não fazemos nada agora.
+      // O dialog será chamado quando o usuário clicar no botão do timer.
+    } else {
+      // Caso o usuário desmarque uma caixa, resetamos a flag
+      setState(() {
+        _pendingCompletion = false;
+      });
     }
   }
 
@@ -544,16 +565,27 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      TextButton(
-                        onPressed: () => _addRestTime(10),
-                        child: const Text('+10s', style: TextStyle(fontSize: 18)),
-                      ),
+                      // Só mostra adicionar tempo se NÃO for a última série (opcional, mas faz sentido)
+                      if (!_pendingCompletion)
+                        TextButton(
+                          onPressed: () => _addRestTime(10),
+                          child: const Text('+10s', style: TextStyle(fontSize: 18)),
+                        ),
+                      
                       ElevatedButton(
-                        onPressed: _stopRestTimer,
+                        onPressed: _stopRestTimer, // Chama o método que verifica a conclusão
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          // Muda a cor para dar destaque no final
+                          backgroundColor: _pendingCompletion 
+                              ? (isNeon ? AppColors.neonGreen : Colors.green) 
+                              : null, 
+                          foregroundColor: _pendingCompletion 
+                              ? (isNeon ? Colors.black : Colors.white) 
+                              : null,
                         ),
-                        child: const Text('Pular / Continuar'),
+                        // Muda o texto dependendo do estado
+                        child: Text(_pendingCompletion ? 'Salvar e Concluir' : 'Pular / Continuar'),
                       ),
                     ],
                   ),
