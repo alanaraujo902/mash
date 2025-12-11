@@ -280,6 +280,49 @@ class ExerciseProvider extends ChangeNotifier {
       }
     }
 
+    // NOVO: Marca o TREINO INTEIRO como concluído quando finalizar um grupo
+    // Verifica se todos os grupos deste treino foram concluídos (têm histórico)
+    final allGroups = await database.getSessionMuscleGroups(trainingSessionId);
+    bool allGroupsCompleted = true;
+    
+    for (var group in allGroups) {
+      final groupExercises = await database.getExercisesBySessionMuscleGroup(group.id);
+      bool groupHasHistory = false;
+      
+      for (var exercise in groupExercises) {
+        final history = await database.getWorkoutHistoryByExercise(exercise.id);
+        if (history.isNotEmpty) {
+          groupHasHistory = true;
+          break;
+        }
+      }
+      
+      if (!groupHasHistory) {
+        allGroupsCompleted = false;
+        break;
+      }
+    }
+
+    // Se todos os grupos foram concluídos, marca o treino como feito
+    if (allGroupsCompleted) {
+      await (database.update(database.trainingSessions)
+        ..where((tbl) => tbl.id.equals(trainingSessionId)))
+        .write(const TrainingSessionsCompanion(isDone: Value(true)));
+
+      // Verifica se todos os treinos estão concluídos para resetar o ciclo
+      final allSessions = await database.getAllTrainingSessions();
+      final allSessionsDone = allSessions.every((s) => s.isDone);
+      
+      if (allSessionsDone) {
+        // Reseta todos os treinos
+        for (var session in allSessions) {
+          await (database.update(database.trainingSessions)
+            ..where((tbl) => tbl.id.equals(session.id)))
+            .write(const TrainingSessionsCompanion(isDone: Value(false)));
+        }
+      }
+    }
+
     // Notifica a tela para recarregar se necessário
     notifyListeners();
   }

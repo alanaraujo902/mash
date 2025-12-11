@@ -27,7 +27,7 @@ class _FeedbackEvaluatorState extends State<FeedbackEvaluator> {
     'Leve demais',
     'Ideal / Ótimo',
     'Pesado (Tolerável)',
-    'Quase falha (RIR 1-2)',
+    'Quase falha (repetição em reserva 1-2)',
     'Falha total',
   ];
 

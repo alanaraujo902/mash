@@ -28,14 +28,11 @@ class TrainScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 16.0),
                 child: InkWell(
                   onTap: () {
-                    // Botão para parar o timer global manualmente
                     showDialog(
                       context: context,
                       builder: (ctx) => AlertDialog(
                         title: const Text('Finalizar Treino do Dia?'),
-                        content: Text(
-                          'Tempo total: $totalTime\nIsso irá zerar o cronômetro geral.',
-                        ),
+                        content: Text('Tempo total: $totalTime\nIsso irá zerar o cronômetro geral.'),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
@@ -43,9 +40,7 @@ class TrainScreen extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () {
-                              context
-                                  .read<WorkoutTimerProvider>()
-                                  .stopAndResetGlobalTimer();
+                              context.read<WorkoutTimerProvider>().stopAndResetGlobalTimer();
                               Navigator.pop(ctx);
                             },
                             child: const Text('Finalizar'),
@@ -55,8 +50,7 @@ class TrainScreen extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -65,19 +59,9 @@ class TrainScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.stop_circle_outlined,
-                          color: Colors.red,
-                          size: 16,
-                        ),
+                        const Icon(Icons.stop_circle_outlined, color: Colors.red, size: 16),
                         const SizedBox(width: 4),
-                        Text(
-                          totalTime,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text(totalTime, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -149,7 +133,6 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
   }
 
   Future<void> _loadGroups() async {
-    // Busca os grupos desta sessão específica no banco
     final groups = await widget.trainingProvider.db
         .getSessionMuscleGroups(widget.session.id);
     if (mounted) {
@@ -161,25 +144,67 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Atualiza o estado da sessão a partir do provider
+    final currentSession = widget.trainingProvider.trainingSessions
+        .firstWhere((s) => s.id == widget.session.id, orElse: () => widget.session);
+    final isDone = currentSession.isDone;
+
     return NeonCard(
       isNeon: widget.isNeon,
       margin: const EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          // CABEÇALHO DO CARD (TREINO)
           ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            
+            // CHECKBOX NO NÍVEL DO TREINO
+            leading: Transform.scale(
+              scale: 1.2,
+              child: Checkbox(
+                value: isDone,
+                activeColor: widget.isNeon ? AppColors.neonGreen : Colors.blue,
+                checkColor: Colors.black,
+                side: BorderSide(
+                  color: widget.isNeon ? AppColors.neonGreen : Colors.grey,
+                  width: 2,
+                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                onChanged: (val) {
+                  if (val != null) {
+                    widget.trainingProvider.toggleSessionDone(currentSession.id, val);
+                  }
+                },
+              ),
+            ),
+
             title: Text(
-              widget.session.name,
+              currentSession.name,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: widget.isNeon ? AppColors.neonGreen : null,
+                color: widget.isNeon 
+                    ? (isDone ? Colors.grey : AppColors.neonGreen) // Fica cinza se feito
+                    : (isDone ? Colors.grey : null),
+                decoration: isDone ? TextDecoration.lineThrough : null, // Risco se feito
               ),
             ),
-            trailing: Icon(
-              _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: widget.isNeon ? AppColors.neonPurple : null,
+            
+            // Botão de expandir
+            trailing: IconButton(
+              icon: Icon(
+                _isExpanded ? Icons.expand_less : Icons.expand_more,
+                color: widget.isNeon ? AppColors.neonPurple : null,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                  if (_isExpanded) _loadGroups();
+                });
+              },
             ),
+            // Tocar no corpo também expande
             onTap: () {
               setState(() {
                 _isExpanded = !_isExpanded;
@@ -187,6 +212,8 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
               });
             },
           ),
+
+          // LISTA DE GRUPOS MUSCULARES (SEM CHECKBOX)
           if (_isExpanded)
             if (_groups.isEmpty)
               Padding(
@@ -203,17 +230,13 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _groups.length,
-                // --- ALTERAÇÃO: Linha sólida de 2px com cor neon roxa ---
                 separatorBuilder: (_, __) => Divider(
-                  height: 2, // Altura total do widget divisor
-                  thickness: 2, // Espessura da linha desenhada
-                  color: widget.isNeon
-                      ? AppColors.neonPurple // Cor sólida do neon
-                      : null,
+                  height: 2, 
+                  thickness: 2, 
+                  color: widget.isNeon ? AppColors.neonPurple.withOpacity(0.3) : null,
                 ),
                 itemBuilder: (context, index) {
                   final smg = _groups[index];
-                  // Encontra o nome do grupo muscular
                   final muscleGroup = widget.muscleProvider.muscleGroups
                       .firstWhere(
                     (g) => g.id == smg.muscleGroupId,
@@ -227,24 +250,27 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                   );
 
                   return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                    // Ícone do grupo apenas visual
                     leading: CircleAvatar(
                       backgroundColor: widget.muscleProvider
                           .getColorFromHex(muscleGroup.color),
+                      radius: 14,
                       child: const Icon(
                         Icons.fitness_center,
                         color: Colors.white,
-                        size: 20,
+                        size: 14,
                       ),
                     ),
                     title: Text(
                       muscleGroup.name,
                       style: TextStyle(
-                        color: widget.isNeon ? AppColors.neonGreen : null,
+                        fontSize: 15,
+                        color: widget.isNeon ? Colors.white70 : null,
                       ),
                     ),
                     trailing: ElevatedButton.icon(
                       onPressed: () {
-                        // Navega para a tela de execução do treino
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -256,13 +282,15 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.play_arrow),
+                      icon: const Icon(Icons.play_arrow, size: 16),
                       label: const Text('Play'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.isNeon
                             ? AppColors.neonPurple
                             : Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: const Size(80, 32),
                       ),
                     ),
                   );
@@ -273,4 +301,3 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
     );
   }
 }
-

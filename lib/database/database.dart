@@ -25,6 +25,9 @@ class TrainingSessions extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   
+  // NOVA COLUNA NO NÍVEL DO TREINO
+  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
+  
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -35,6 +38,9 @@ class SessionMuscleGroups extends Table {
   TextColumn get sessionId => text().references(TrainingSessions, #id, onDelete: KeyAction.cascade)();
   TextColumn get muscleGroupId => text().references(MuscleGroups, #id, onDelete: KeyAction.cascade)();
   IntColumn get order => integer().withDefault(const Constant(0))();
+  
+  // NOVA COLUNA: Indica se o grupo foi concluído no ciclo atual
+  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
   
   @override
   Set<Column> get primaryKey => {id};
@@ -146,9 +152,9 @@ class MuscleRecoveries extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 7 (com feedback)
+  // Versão atualizada para 9 (ciclo de treino no nível da sessão)
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -184,6 +190,16 @@ class AppDatabase extends _$AppDatabase {
         if (from < 7) {
           await m.addColumn(exerciseSeriesList, exerciseSeriesList.feedback);
           await m.addColumn(workoutHistorySets, workoutHistorySets.feedback);
+        }
+        
+        // Migração v8: Adicionar coluna isDone para ciclo de treino (grupos)
+        if (from < 8) {
+          await m.addColumn(sessionMuscleGroups, sessionMuscleGroups.isDone);
+        }
+        
+        // Migração v9: Adicionar coluna isDone no nível da sessão de treino
+        if (from < 9) {
+          await m.addColumn(trainingSessions, trainingSessions.isDone);
         }
       },
     );

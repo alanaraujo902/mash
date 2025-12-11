@@ -406,6 +406,19 @@ class $TrainingSessionsTable extends TrainingSessions
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
+  @override
+  late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
+    'is_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -413,6 +426,7 @@ class $TrainingSessionsTable extends TrainingSessions
     description,
     createdAt,
     updatedAt,
+    isDone,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -460,6 +474,12 @@ class $TrainingSessionsTable extends TrainingSessions
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('is_done')) {
+      context.handle(
+        _isDoneMeta,
+        isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
+      );
+    }
     return context;
   }
 
@@ -489,6 +509,10 @@ class $TrainingSessionsTable extends TrainingSessions
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      isDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_done'],
+      )!,
     );
   }
 
@@ -504,12 +528,14 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
   final String? description;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isDone;
   const TrainingSession({
     required this.id,
     required this.name,
     this.description,
     required this.createdAt,
     required this.updatedAt,
+    required this.isDone,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -521,6 +547,7 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_done'] = Variable<bool>(isDone);
     return map;
   }
 
@@ -533,6 +560,7 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
           : Value(description),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isDone: Value(isDone),
     );
   }
 
@@ -547,6 +575,7 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
       description: serializer.fromJson<String?>(json['description']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDone: serializer.fromJson<bool>(json['isDone']),
     );
   }
   @override
@@ -558,6 +587,7 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
       'description': serializer.toJson<String?>(description),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDone': serializer.toJson<bool>(isDone),
     };
   }
 
@@ -567,12 +597,14 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
     Value<String?> description = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isDone,
   }) => TrainingSession(
     id: id ?? this.id,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    isDone: isDone ?? this.isDone,
   );
   TrainingSession copyWithCompanion(TrainingSessionsCompanion data) {
     return TrainingSession(
@@ -583,6 +615,7 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
           : this.description,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDone: data.isDone.present ? data.isDone.value : this.isDone,
     );
   }
 
@@ -593,13 +626,15 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDone: $isDone')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, description, createdAt, updatedAt);
+  int get hashCode =>
+      Object.hash(id, name, description, createdAt, updatedAt, isDone);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -608,7 +643,8 @@ class TrainingSession extends DataClass implements Insertable<TrainingSession> {
           other.name == this.name &&
           other.description == this.description &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.isDone == this.isDone);
 }
 
 class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
@@ -617,6 +653,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
   final Value<String?> description;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<bool> isDone;
   final Value<int> rowid;
   const TrainingSessionsCompanion({
     this.id = const Value.absent(),
@@ -624,6 +661,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
     this.description = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDone = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TrainingSessionsCompanion.insert({
@@ -632,6 +670,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
     this.description = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDone = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
@@ -641,6 +680,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
     Expression<String>? description,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? isDone,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -649,6 +689,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
       if (description != null) 'description': description,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDone != null) 'is_done': isDone,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -659,6 +700,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
     Value<String?>? description,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<bool>? isDone,
     Value<int>? rowid,
   }) {
     return TrainingSessionsCompanion(
@@ -667,6 +709,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isDone: isDone ?? this.isDone,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -689,6 +732,9 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (isDone.present) {
+      map['is_done'] = Variable<bool>(isDone.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -703,6 +749,7 @@ class TrainingSessionsCompanion extends UpdateCompanion<TrainingSession> {
           ..write('description: $description, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isDone: $isDone, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -762,8 +809,27 @@ class $SessionMuscleGroupsTable extends SessionMuscleGroups
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
   @override
-  List<GeneratedColumn> get $columns => [id, sessionId, muscleGroupId, order];
+  late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
+    'is_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    muscleGroupId,
+    order,
+    isDone,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -806,6 +872,12 @@ class $SessionMuscleGroupsTable extends SessionMuscleGroups
         order.isAcceptableOrUnknown(data['order']!, _orderMeta),
       );
     }
+    if (data.containsKey('is_done')) {
+      context.handle(
+        _isDoneMeta,
+        isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
+      );
+    }
     return context;
   }
 
@@ -831,6 +903,10 @@ class $SessionMuscleGroupsTable extends SessionMuscleGroups
         DriftSqlType.int,
         data['${effectivePrefix}order'],
       )!,
+      isDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_done'],
+      )!,
     );
   }
 
@@ -846,11 +922,13 @@ class SessionMuscleGroup extends DataClass
   final String sessionId;
   final String muscleGroupId;
   final int order;
+  final bool isDone;
   const SessionMuscleGroup({
     required this.id,
     required this.sessionId,
     required this.muscleGroupId,
     required this.order,
+    required this.isDone,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -859,6 +937,7 @@ class SessionMuscleGroup extends DataClass
     map['session_id'] = Variable<String>(sessionId);
     map['muscle_group_id'] = Variable<String>(muscleGroupId);
     map['order'] = Variable<int>(order);
+    map['is_done'] = Variable<bool>(isDone);
     return map;
   }
 
@@ -868,6 +947,7 @@ class SessionMuscleGroup extends DataClass
       sessionId: Value(sessionId),
       muscleGroupId: Value(muscleGroupId),
       order: Value(order),
+      isDone: Value(isDone),
     );
   }
 
@@ -881,6 +961,7 @@ class SessionMuscleGroup extends DataClass
       sessionId: serializer.fromJson<String>(json['sessionId']),
       muscleGroupId: serializer.fromJson<String>(json['muscleGroupId']),
       order: serializer.fromJson<int>(json['order']),
+      isDone: serializer.fromJson<bool>(json['isDone']),
     );
   }
   @override
@@ -891,6 +972,7 @@ class SessionMuscleGroup extends DataClass
       'sessionId': serializer.toJson<String>(sessionId),
       'muscleGroupId': serializer.toJson<String>(muscleGroupId),
       'order': serializer.toJson<int>(order),
+      'isDone': serializer.toJson<bool>(isDone),
     };
   }
 
@@ -899,11 +981,13 @@ class SessionMuscleGroup extends DataClass
     String? sessionId,
     String? muscleGroupId,
     int? order,
+    bool? isDone,
   }) => SessionMuscleGroup(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
     muscleGroupId: muscleGroupId ?? this.muscleGroupId,
     order: order ?? this.order,
+    isDone: isDone ?? this.isDone,
   );
   SessionMuscleGroup copyWithCompanion(SessionMuscleGroupsCompanion data) {
     return SessionMuscleGroup(
@@ -913,6 +997,7 @@ class SessionMuscleGroup extends DataClass
           ? data.muscleGroupId.value
           : this.muscleGroupId,
       order: data.order.present ? data.order.value : this.order,
+      isDone: data.isDone.present ? data.isDone.value : this.isDone,
     );
   }
 
@@ -922,13 +1007,14 @@ class SessionMuscleGroup extends DataClass
           ..write('id: $id, ')
           ..write('sessionId: $sessionId, ')
           ..write('muscleGroupId: $muscleGroupId, ')
-          ..write('order: $order')
+          ..write('order: $order, ')
+          ..write('isDone: $isDone')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, sessionId, muscleGroupId, order);
+  int get hashCode => Object.hash(id, sessionId, muscleGroupId, order, isDone);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -936,7 +1022,8 @@ class SessionMuscleGroup extends DataClass
           other.id == this.id &&
           other.sessionId == this.sessionId &&
           other.muscleGroupId == this.muscleGroupId &&
-          other.order == this.order);
+          other.order == this.order &&
+          other.isDone == this.isDone);
 }
 
 class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
@@ -944,12 +1031,14 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
   final Value<String> sessionId;
   final Value<String> muscleGroupId;
   final Value<int> order;
+  final Value<bool> isDone;
   final Value<int> rowid;
   const SessionMuscleGroupsCompanion({
     this.id = const Value.absent(),
     this.sessionId = const Value.absent(),
     this.muscleGroupId = const Value.absent(),
     this.order = const Value.absent(),
+    this.isDone = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SessionMuscleGroupsCompanion.insert({
@@ -957,6 +1046,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
     required String sessionId,
     required String muscleGroupId,
     this.order = const Value.absent(),
+    this.isDone = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -966,6 +1056,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
     Expression<String>? sessionId,
     Expression<String>? muscleGroupId,
     Expression<int>? order,
+    Expression<bool>? isDone,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -973,6 +1064,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
       if (sessionId != null) 'session_id': sessionId,
       if (muscleGroupId != null) 'muscle_group_id': muscleGroupId,
       if (order != null) 'order': order,
+      if (isDone != null) 'is_done': isDone,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -982,6 +1074,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
     Value<String>? sessionId,
     Value<String>? muscleGroupId,
     Value<int>? order,
+    Value<bool>? isDone,
     Value<int>? rowid,
   }) {
     return SessionMuscleGroupsCompanion(
@@ -989,6 +1082,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
       sessionId: sessionId ?? this.sessionId,
       muscleGroupId: muscleGroupId ?? this.muscleGroupId,
       order: order ?? this.order,
+      isDone: isDone ?? this.isDone,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1008,6 +1102,9 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
     if (order.present) {
       map['order'] = Variable<int>(order.value);
     }
+    if (isDone.present) {
+      map['is_done'] = Variable<bool>(isDone.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1021,6 +1118,7 @@ class SessionMuscleGroupsCompanion extends UpdateCompanion<SessionMuscleGroup> {
           ..write('sessionId: $sessionId, ')
           ..write('muscleGroupId: $muscleGroupId, ')
           ..write('order: $order, ')
+          ..write('isDone: $isDone, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4447,6 +4545,7 @@ typedef $$TrainingSessionsTableCreateCompanionBuilder =
       Value<String?> description,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDone,
       Value<int> rowid,
     });
 typedef $$TrainingSessionsTableUpdateCompanionBuilder =
@@ -4456,6 +4555,7 @@ typedef $$TrainingSessionsTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDone,
       Value<int> rowid,
     });
 
@@ -4553,6 +4653,11 @@ class $$TrainingSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> sessionMuscleGroupsRefs(
     Expression<bool> Function($$SessionMuscleGroupsTableFilterComposer f) f,
   ) {
@@ -4637,6 +4742,11 @@ class $$TrainingSessionsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TrainingSessionsTableAnnotationComposer
@@ -4664,6 +4774,9 @@ class $$TrainingSessionsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDone =>
+      $composableBuilder(column: $table.isDone, builder: (column) => column);
 
   Expression<T> sessionMuscleGroupsRefs<T extends Object>(
     Expression<T> Function($$SessionMuscleGroupsTableAnnotationComposer a) f,
@@ -4755,6 +4868,7 @@ class $$TrainingSessionsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TrainingSessionsCompanion(
                 id: id,
@@ -4762,6 +4876,7 @@ class $$TrainingSessionsTableTableManager
                 description: description,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDone: isDone,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -4771,6 +4886,7 @@ class $$TrainingSessionsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TrainingSessionsCompanion.insert(
                 id: id,
@@ -4778,6 +4894,7 @@ class $$TrainingSessionsTableTableManager
                 description: description,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDone: isDone,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -4872,6 +4989,7 @@ typedef $$SessionMuscleGroupsTableCreateCompanionBuilder =
       required String sessionId,
       required String muscleGroupId,
       Value<int> order,
+      Value<bool> isDone,
       Value<int> rowid,
     });
 typedef $$SessionMuscleGroupsTableUpdateCompanionBuilder =
@@ -4880,6 +4998,7 @@ typedef $$SessionMuscleGroupsTableUpdateCompanionBuilder =
       Value<String> sessionId,
       Value<String> muscleGroupId,
       Value<int> order,
+      Value<bool> isDone,
       Value<int> rowid,
     });
 
@@ -5004,6 +5123,11 @@ class $$SessionMuscleGroupsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$TrainingSessionsTableFilterComposer get sessionId {
     final $$TrainingSessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -5120,6 +5244,11 @@ class $$SessionMuscleGroupsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$TrainingSessionsTableOrderingComposer get sessionId {
     final $$TrainingSessionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5181,6 +5310,9 @@ class $$SessionMuscleGroupsTableAnnotationComposer
 
   GeneratedColumn<int> get order =>
       $composableBuilder(column: $table.order, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDone =>
+      $composableBuilder(column: $table.isDone, builder: (column) => column);
 
   $$TrainingSessionsTableAnnotationComposer get sessionId {
     final $$TrainingSessionsTableAnnotationComposer composer = $composerBuilder(
@@ -5324,12 +5456,14 @@ class $$SessionMuscleGroupsTableTableManager
                 Value<String> sessionId = const Value.absent(),
                 Value<String> muscleGroupId = const Value.absent(),
                 Value<int> order = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionMuscleGroupsCompanion(
                 id: id,
                 sessionId: sessionId,
                 muscleGroupId: muscleGroupId,
                 order: order,
+                isDone: isDone,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5338,12 +5472,14 @@ class $$SessionMuscleGroupsTableTableManager
                 required String sessionId,
                 required String muscleGroupId,
                 Value<int> order = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionMuscleGroupsCompanion.insert(
                 id: id,
                 sessionId: sessionId,
                 muscleGroupId: muscleGroupId,
                 order: order,
+                isDone: isDone,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
