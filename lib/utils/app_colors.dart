@@ -17,3 +17,4 @@ class AppColors {
   static const neonCard = Color(0xFF151522); // Card quase preto
 }
 
+

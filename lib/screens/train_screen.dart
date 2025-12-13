@@ -4,8 +4,10 @@ import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
 import '../providers/workout_timer_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/daily_context_provider.dart';
 import '../database/database.dart';
 import '../widgets/neon_card.dart';
+import '../widgets/daily_context_dialog.dart';
 import '../utils/app_colors.dart';
 import 'active_workout_screen.dart';
 
@@ -270,17 +272,40 @@ class _TrainingSessionCardState extends State<_TrainingSessionCard> {
                       ),
                     ),
                     trailing: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ActiveWorkoutScreen(
-                              sessionMuscleGroup: smg,
-                              groupName: muscleGroup.name,
-                              trainingSessionId: widget.session.id,
+                      onPressed: () async {
+                        // 1. LÓGICA DE CONTEXTO DIÁRIO
+                        final dailyProvider = context.read<DailyContextProvider>();
+                        
+                        // --- COMENTEI A VERIFICAÇÃO ABAIXO PARA APARECER SEMPRE NOS TESTES ---
+                        final hasContext = await dailyProvider.hasContextForToday();
+                        
+                        // Define como FALSE para forçar o aparecimento do menu
+                        //final hasContext = false;
+
+                        bool shouldProceed = true;
+
+                        if (!hasContext && mounted) {
+                          // Abre o Dialog e espera o resultado
+                          final result = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: false, 
+                            builder: (ctx) => const DailyContextDialog(),
+                          );
+                          shouldProceed = result ?? false;
+                        }
+
+                        if (shouldProceed && mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActiveWorkoutScreen(
+                                sessionMuscleGroup: smg,
+                                groupName: muscleGroup.name,
+                                trainingSessionId: widget.session.id,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                       icon: const Icon(Icons.play_arrow, size: 16),
                       label: const Text('Play'),

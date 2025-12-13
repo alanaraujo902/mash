@@ -1,51 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart';
-import 'dart:convert'; // Necessário para ler o JSON
+import 'dart:convert';
 import '../database/database.dart';
 
-// --- DTOs ATUALIZADOS ---
+// --- DTOs HIERÁRQUICOS ---
 
-class MuscleGroupHistoryDTO {
-  final String groupName;
-  final String color;
-  final List<ExerciseHistorySummaryDTO> exercises;
+class HistorySessionDTO {
+  final String sessionName;
+  final List<HistoryMuscleGroupDTO> muscleGroups;
 
-  MuscleGroupHistoryDTO({
-    required this.groupName,
-    required this.color,
-    required this.exercises,
-  });
+  HistorySessionDTO({required this.sessionName, required this.muscleGroups});
 }
 
-class ExerciseHistorySummaryDTO {
+class HistoryMuscleGroupDTO {
+  final String groupName;
+  final String color;
+  final List<HistoryExerciseDTO> exercises;
+
+  HistoryMuscleGroupDTO({required this.groupName, required this.color, required this.exercises});
+}
+
+class HistoryExerciseDTO {
   final String exerciseName;
   final List<ExerciseRecordDTO> records;
 
-  ExerciseHistorySummaryDTO({
-    required this.exerciseName,
-    required this.records,
-  });
+  HistoryExerciseDTO({required this.exerciseName, required this.records});
 }
 
-// Classe para cada série individual
+// Mantido igual ao anterior
 class SetHistoryItemDTO {
-  final String performance; // Ex: "10x 20kg"
-  final String? feedbackSummary; // Ex: "Ideal • Pump Alto"
-  final bool hasLimiters; // Para mudar a cor se houve dor/limitação
+  final String performance;
+  final String? feedbackSummary;
+  final bool hasLimiters;
 
-  SetHistoryItemDTO({
-    required this.performance,
-    this.feedbackSummary,
-    this.hasLimiters = false,
-  });
+  SetHistoryItemDTO({required this.performance, this.feedbackSummary, this.hasLimiters = false});
 }
 
 class ExerciseRecordDTO {
   final DateTime date;
   final double maxWeight;
   final double totalVolume;
-  final List<SetHistoryItemDTO> sets; // <--- ALTERADO DE LIST<STRING> PARA LIST<OBJETO>
+  final List<SetHistoryItemDTO> sets;
 
   ExerciseRecordDTO({
     required this.date,
@@ -58,7 +54,6 @@ class ExerciseRecordDTO {
 class WorkoutProvider extends ChangeNotifier {
   final AppDatabase database;
   
-  // Variáveis do treino ativo
   WorkoutSession? _currentWorkout;
   Exercise? _currentExercise;
   int _currentSeriesIndex = 0;
@@ -73,7 +68,7 @@ class WorkoutProvider extends ChangeNotifier {
   bool get isIntervalActive => _isIntervalActive;
   int get remainingIntervalSeconds => _remainingIntervalSeconds;
 
-  // --- MÉTODOS DE TREINO ATIVO (MANTIDOS IGUAIS) ---
+  // --- MÉTODOS DE TREINO ATIVO (Mantidos) ---
   
   Future<void> startWorkout(String trainingSessionId, String sessionMuscleGroupId) async {
     _currentWorkout = WorkoutSession(
@@ -120,7 +115,6 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Future<void> finishWorkout(int completedSeries) async {
-    // Lógica antiga de finalizar, mantida para compatibilidade
     if (_currentWorkout != null && _currentExercise != null) {
       final updated = _currentWorkout!.copyWith(
         completedAt: Value(_currentWorkout!.completedAt ?? DateTime.now()),
@@ -153,9 +147,10 @@ class WorkoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- BUSCA DE HISTÓRICO COM PARSER DE FEEDBACK ---
+  // --- NOVA BUSCA HIERÁRQUICA COMPLETA ---
+  // Sessão -> Grupo -> Exercício -> Registros
   
-  Future<List<MuscleGroupHistoryDTO>> getHistoryOrganizedByGroup() async {
+  Future<List<HistorySessionDTO>> getFullHierarchicalHistory() async {
     final query = database.select(database.workoutHistories).join([
       innerJoin(
         database.exercises,
@@ -164,6 +159,10 @@ class WorkoutProvider extends ChangeNotifier {
       innerJoin(
         database.workoutSessions, 
         database.workoutSessions.id.equalsExp(database.workoutHistories.workoutSessionId),
+      ),
+      innerJoin(
+        database.trainingSessions, // Importante: Join com Sessão de Treino
+        database.trainingSessions.id.equalsExp(database.workoutSessions.trainingSessionId),
       ),
       innerJoin(
         database.sessionMuscleGroups,
@@ -178,19 +177,30 @@ class WorkoutProvider extends ChangeNotifier {
 
     final rows = await query.get();
 
-    final Map<String, Map<String, List<ExerciseRecordDTO>>> groupedData = {};
+    // Mapas aninhados: Session -> MuscleGroup -> Exercise -> List<Records>
+    final Map<String, Map<String, Map<String, List<ExerciseRecordDTO>>>> tree = {};
+    
+    // Metadados para reconstruir os nomes/cores
+    final Map<String, String> sessionNames = {};
+    final Map<String, String> groupNames = {};
     final Map<String, String> groupColors = {};
+    final Map<String, String> exerciseNames = {};
 
     for (var row in rows) {
       final history = row.readTable(database.workoutHistories);
       final exercise = row.readTable(database.exercises);
-      final muscleGroup = row.readTable(database.muscleGroups);
+      final session = row.readTable(database.trainingSessions);
+      final group = row.readTable(database.muscleGroups);
       final date = history.completedAt;
 
-      // Buscar detalhes das séries (Sets)
+      // Salva metadados
+      sessionNames[session.id] = session.name;
+      groupNames[group.id] = group.name;
+      groupColors[group.id] = group.color;
+      exerciseNames[exercise.id] = exercise.name;
+
+      // Processa os sets
       final sets = await database.getSetsForHistory(history.id);
-      
-      // --- LÓGICA DE PARSEAMENTO DO FEEDBACK ---
       final List<SetHistoryItemDTO> setDetails = sets.map((s) {
         String performance = "${s.reps}x ${s.weightKg.toStringAsFixed(1).replaceAll('.0', '')}kg";
         String? feedbackText;
@@ -199,33 +209,19 @@ class WorkoutProvider extends ChangeNotifier {
         if (s.feedback != null && s.feedback!.isNotEmpty) {
           try {
             final Map<String, dynamic> json = jsonDecode(s.feedback!);
-            
             List<String> parts = [];
-            
-            // 1. Progressão (Leve, Ideal, Pesado...)
-            if (json['progression'] != null) {
-              parts.add(json['progression']);
-            }
-
-            // 2. Limitadores (Dor, Falha...)
+            if (json['progression'] != null) parts.add(json['progression']);
             if (json['limiters'] != null && (json['limiters'] as List).isNotEmpty) {
               final limits = (json['limiters'] as List).join(', ');
               parts.add("Lim: $limits");
-              limitersPresent = true; // Marca para destacar visualmente
+              limitersPresent = true;
             }
-
-            // 3. Sensações (Pump, etc)
             if (json['sensations'] != null && (json['sensations'] as List).isNotEmpty) {
               final senses = (json['sensations'] as List).join(', ');
               parts.add(senses);
             }
-
-            if (parts.isNotEmpty) {
-              feedbackText = parts.join(' • ');
-            }
-          } catch (e) {
-            // Erro ao ler JSON, ignora
-          }
+            if (parts.isNotEmpty) feedbackText = parts.join(' • ');
+          } catch (_) {}
         }
 
         return SetHistoryItemDTO(
@@ -242,35 +238,41 @@ class WorkoutProvider extends ChangeNotifier {
         sets: setDetails,
       );
 
-      if (!groupedData.containsKey(muscleGroup.name)) {
-        groupedData[muscleGroup.name] = {};
-        groupColors[muscleGroup.name] = muscleGroup.color;
-      }
-
-      if (!groupedData[muscleGroup.name]!.containsKey(exercise.name)) {
-        groupedData[muscleGroup.name]![exercise.name] = [];
-      }
-
-      groupedData[muscleGroup.name]![exercise.name]!.add(record);
+      // Constrói a árvore
+      tree.putIfAbsent(session.id, () => {});
+      tree[session.id]!.putIfAbsent(group.id, () => {});
+      tree[session.id]![group.id]!.putIfAbsent(exercise.id, () => []);
+      
+      tree[session.id]![group.id]![exercise.id]!.add(record);
     }
 
-    final List<MuscleGroupHistoryDTO> result = [];
+    // Converter Maps para DTOs
+    final List<HistorySessionDTO> result = [];
 
-    groupedData.forEach((groupName, exercisesMap) {
-      final List<ExerciseHistorySummaryDTO> exerciseList = [];
+    tree.forEach((sessionId, groupsMap) {
+      final List<HistoryMuscleGroupDTO> muscleGroupDTOs = [];
 
-      exercisesMap.forEach((exerciseName, records) {
-        final limitedRecords = records.take(10).toList();
-        exerciseList.add(ExerciseHistorySummaryDTO(
-          exerciseName: exerciseName,
-          records: limitedRecords,
+      groupsMap.forEach((groupId, exercisesMap) {
+        final List<HistoryExerciseDTO> exerciseDTOs = [];
+
+        exercisesMap.forEach((exerciseId, records) {
+          // Limita a 10 registros
+          exerciseDTOs.add(HistoryExerciseDTO(
+            exerciseName: exerciseNames[exerciseId] ?? 'Unknown',
+            records: records.take(10).toList(),
+          ));
+        });
+
+        muscleGroupDTOs.add(HistoryMuscleGroupDTO(
+          groupName: groupNames[groupId] ?? 'Unknown',
+          color: groupColors[groupId] ?? '#FFFFFF',
+          exercises: exerciseDTOs,
         ));
       });
 
-      result.add(MuscleGroupHistoryDTO(
-        groupName: groupName,
-        color: groupColors[groupName] ?? '#FFFFFF',
-        exercises: exerciseList,
+      result.add(HistorySessionDTO(
+        sessionName: sessionNames[sessionId] ?? 'Unknown',
+        muscleGroups: muscleGroupDTOs,
       ));
     });
 

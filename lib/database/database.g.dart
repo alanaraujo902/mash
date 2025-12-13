@@ -4005,6 +4005,813 @@ class WorkoutHistorySetsCompanion extends UpdateCompanion<WorkoutHistorySet> {
   }
 }
 
+class $DailyContextsTable extends DailyContexts
+    with TableInfo<$DailyContextsTable, DailyContext> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyContextsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sleepTagsMeta = const VerificationMeta(
+    'sleepTags',
+  );
+  @override
+  late final GeneratedColumn<String> sleepTags = GeneratedColumn<String>(
+    'sleep_tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nutritionTagsMeta = const VerificationMeta(
+    'nutritionTags',
+  );
+  @override
+  late final GeneratedColumn<String> nutritionTags = GeneratedColumn<String>(
+    'nutrition_tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stressTagsMeta = const VerificationMeta(
+    'stressTags',
+  );
+  @override
+  late final GeneratedColumn<String> stressTags = GeneratedColumn<String>(
+    'stress_tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    sleepTags,
+    nutritionTags,
+    stressTags,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_contexts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyContext> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('sleep_tags')) {
+      context.handle(
+        _sleepTagsMeta,
+        sleepTags.isAcceptableOrUnknown(data['sleep_tags']!, _sleepTagsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sleepTagsMeta);
+    }
+    if (data.containsKey('nutrition_tags')) {
+      context.handle(
+        _nutritionTagsMeta,
+        nutritionTags.isAcceptableOrUnknown(
+          data['nutrition_tags']!,
+          _nutritionTagsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nutritionTagsMeta);
+    }
+    if (data.containsKey('stress_tags')) {
+      context.handle(
+        _stressTagsMeta,
+        stressTags.isAcceptableOrUnknown(data['stress_tags']!, _stressTagsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stressTagsMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DailyContext map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyContext(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      sleepTags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sleep_tags'],
+      )!,
+      nutritionTags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nutrition_tags'],
+      )!,
+      stressTags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stress_tags'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $DailyContextsTable createAlias(String alias) {
+    return $DailyContextsTable(attachedDatabase, alias);
+  }
+}
+
+class DailyContext extends DataClass implements Insertable<DailyContext> {
+  final String id;
+  final DateTime date;
+  final String sleepTags;
+  final String nutritionTags;
+  final String stressTags;
+  final String? notes;
+  const DailyContext({
+    required this.id,
+    required this.date,
+    required this.sleepTags,
+    required this.nutritionTags,
+    required this.stressTags,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['sleep_tags'] = Variable<String>(sleepTags);
+    map['nutrition_tags'] = Variable<String>(nutritionTags);
+    map['stress_tags'] = Variable<String>(stressTags);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  DailyContextsCompanion toCompanion(bool nullToAbsent) {
+    return DailyContextsCompanion(
+      id: Value(id),
+      date: Value(date),
+      sleepTags: Value(sleepTags),
+      nutritionTags: Value(nutritionTags),
+      stressTags: Value(stressTags),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory DailyContext.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyContext(
+      id: serializer.fromJson<String>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      sleepTags: serializer.fromJson<String>(json['sleepTags']),
+      nutritionTags: serializer.fromJson<String>(json['nutritionTags']),
+      stressTags: serializer.fromJson<String>(json['stressTags']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'sleepTags': serializer.toJson<String>(sleepTags),
+      'nutritionTags': serializer.toJson<String>(nutritionTags),
+      'stressTags': serializer.toJson<String>(stressTags),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  DailyContext copyWith({
+    String? id,
+    DateTime? date,
+    String? sleepTags,
+    String? nutritionTags,
+    String? stressTags,
+    Value<String?> notes = const Value.absent(),
+  }) => DailyContext(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    sleepTags: sleepTags ?? this.sleepTags,
+    nutritionTags: nutritionTags ?? this.nutritionTags,
+    stressTags: stressTags ?? this.stressTags,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  DailyContext copyWithCompanion(DailyContextsCompanion data) {
+    return DailyContext(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      sleepTags: data.sleepTags.present ? data.sleepTags.value : this.sleepTags,
+      nutritionTags: data.nutritionTags.present
+          ? data.nutritionTags.value
+          : this.nutritionTags,
+      stressTags: data.stressTags.present
+          ? data.stressTags.value
+          : this.stressTags,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyContext(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('sleepTags: $sleepTags, ')
+          ..write('nutritionTags: $nutritionTags, ')
+          ..write('stressTags: $stressTags, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, date, sleepTags, nutritionTags, stressTags, notes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyContext &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.sleepTags == this.sleepTags &&
+          other.nutritionTags == this.nutritionTags &&
+          other.stressTags == this.stressTags &&
+          other.notes == this.notes);
+}
+
+class DailyContextsCompanion extends UpdateCompanion<DailyContext> {
+  final Value<String> id;
+  final Value<DateTime> date;
+  final Value<String> sleepTags;
+  final Value<String> nutritionTags;
+  final Value<String> stressTags;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const DailyContextsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.sleepTags = const Value.absent(),
+    this.nutritionTags = const Value.absent(),
+    this.stressTags = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DailyContextsCompanion.insert({
+    required String id,
+    required DateTime date,
+    required String sleepTags,
+    required String nutritionTags,
+    required String stressTags,
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       date = Value(date),
+       sleepTags = Value(sleepTags),
+       nutritionTags = Value(nutritionTags),
+       stressTags = Value(stressTags);
+  static Insertable<DailyContext> custom({
+    Expression<String>? id,
+    Expression<DateTime>? date,
+    Expression<String>? sleepTags,
+    Expression<String>? nutritionTags,
+    Expression<String>? stressTags,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (sleepTags != null) 'sleep_tags': sleepTags,
+      if (nutritionTags != null) 'nutrition_tags': nutritionTags,
+      if (stressTags != null) 'stress_tags': stressTags,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DailyContextsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? date,
+    Value<String>? sleepTags,
+    Value<String>? nutritionTags,
+    Value<String>? stressTags,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return DailyContextsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      sleepTags: sleepTags ?? this.sleepTags,
+      nutritionTags: nutritionTags ?? this.nutritionTags,
+      stressTags: stressTags ?? this.stressTags,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (sleepTags.present) {
+      map['sleep_tags'] = Variable<String>(sleepTags.value);
+    }
+    if (nutritionTags.present) {
+      map['nutrition_tags'] = Variable<String>(nutritionTags.value);
+    }
+    if (stressTags.present) {
+      map['stress_tags'] = Variable<String>(stressTags.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyContextsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('sleepTags: $sleepTags, ')
+          ..write('nutritionTags: $nutritionTags, ')
+          ..write('stressTags: $stressTags, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecoveryHistoryLogsTable extends RecoveryHistoryLogs
+    with TableInfo<$RecoveryHistoryLogsTable, RecoveryHistoryLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecoveryHistoryLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _muscleGroupIdMeta = const VerificationMeta(
+    'muscleGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> muscleGroupId = GeneratedColumn<String>(
+    'muscle_group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES muscle_groups (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _fatigueDateMeta = const VerificationMeta(
+    'fatigueDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fatigueDate = GeneratedColumn<DateTime>(
+    'fatigue_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recoveredDateMeta = const VerificationMeta(
+    'recoveredDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recoveredDate =
+      GeneratedColumn<DateTime>(
+        'recovered_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _durationInHoursMeta = const VerificationMeta(
+    'durationInHours',
+  );
+  @override
+  late final GeneratedColumn<int> durationInHours = GeneratedColumn<int>(
+    'duration_in_hours',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    muscleGroupId,
+    fatigueDate,
+    recoveredDate,
+    durationInHours,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recovery_history_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecoveryHistoryLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('muscle_group_id')) {
+      context.handle(
+        _muscleGroupIdMeta,
+        muscleGroupId.isAcceptableOrUnknown(
+          data['muscle_group_id']!,
+          _muscleGroupIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_muscleGroupIdMeta);
+    }
+    if (data.containsKey('fatigue_date')) {
+      context.handle(
+        _fatigueDateMeta,
+        fatigueDate.isAcceptableOrUnknown(
+          data['fatigue_date']!,
+          _fatigueDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fatigueDateMeta);
+    }
+    if (data.containsKey('recovered_date')) {
+      context.handle(
+        _recoveredDateMeta,
+        recoveredDate.isAcceptableOrUnknown(
+          data['recovered_date']!,
+          _recoveredDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recoveredDateMeta);
+    }
+    if (data.containsKey('duration_in_hours')) {
+      context.handle(
+        _durationInHoursMeta,
+        durationInHours.isAcceptableOrUnknown(
+          data['duration_in_hours']!,
+          _durationInHoursMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationInHoursMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecoveryHistoryLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecoveryHistoryLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      muscleGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}muscle_group_id'],
+      )!,
+      fatigueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fatigue_date'],
+      )!,
+      recoveredDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recovered_date'],
+      )!,
+      durationInHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_in_hours'],
+      )!,
+    );
+  }
+
+  @override
+  $RecoveryHistoryLogsTable createAlias(String alias) {
+    return $RecoveryHistoryLogsTable(attachedDatabase, alias);
+  }
+}
+
+class RecoveryHistoryLog extends DataClass
+    implements Insertable<RecoveryHistoryLog> {
+  final String id;
+  final String muscleGroupId;
+  final DateTime fatigueDate;
+  final DateTime recoveredDate;
+  final int durationInHours;
+  const RecoveryHistoryLog({
+    required this.id,
+    required this.muscleGroupId,
+    required this.fatigueDate,
+    required this.recoveredDate,
+    required this.durationInHours,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['muscle_group_id'] = Variable<String>(muscleGroupId);
+    map['fatigue_date'] = Variable<DateTime>(fatigueDate);
+    map['recovered_date'] = Variable<DateTime>(recoveredDate);
+    map['duration_in_hours'] = Variable<int>(durationInHours);
+    return map;
+  }
+
+  RecoveryHistoryLogsCompanion toCompanion(bool nullToAbsent) {
+    return RecoveryHistoryLogsCompanion(
+      id: Value(id),
+      muscleGroupId: Value(muscleGroupId),
+      fatigueDate: Value(fatigueDate),
+      recoveredDate: Value(recoveredDate),
+      durationInHours: Value(durationInHours),
+    );
+  }
+
+  factory RecoveryHistoryLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecoveryHistoryLog(
+      id: serializer.fromJson<String>(json['id']),
+      muscleGroupId: serializer.fromJson<String>(json['muscleGroupId']),
+      fatigueDate: serializer.fromJson<DateTime>(json['fatigueDate']),
+      recoveredDate: serializer.fromJson<DateTime>(json['recoveredDate']),
+      durationInHours: serializer.fromJson<int>(json['durationInHours']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'muscleGroupId': serializer.toJson<String>(muscleGroupId),
+      'fatigueDate': serializer.toJson<DateTime>(fatigueDate),
+      'recoveredDate': serializer.toJson<DateTime>(recoveredDate),
+      'durationInHours': serializer.toJson<int>(durationInHours),
+    };
+  }
+
+  RecoveryHistoryLog copyWith({
+    String? id,
+    String? muscleGroupId,
+    DateTime? fatigueDate,
+    DateTime? recoveredDate,
+    int? durationInHours,
+  }) => RecoveryHistoryLog(
+    id: id ?? this.id,
+    muscleGroupId: muscleGroupId ?? this.muscleGroupId,
+    fatigueDate: fatigueDate ?? this.fatigueDate,
+    recoveredDate: recoveredDate ?? this.recoveredDate,
+    durationInHours: durationInHours ?? this.durationInHours,
+  );
+  RecoveryHistoryLog copyWithCompanion(RecoveryHistoryLogsCompanion data) {
+    return RecoveryHistoryLog(
+      id: data.id.present ? data.id.value : this.id,
+      muscleGroupId: data.muscleGroupId.present
+          ? data.muscleGroupId.value
+          : this.muscleGroupId,
+      fatigueDate: data.fatigueDate.present
+          ? data.fatigueDate.value
+          : this.fatigueDate,
+      recoveredDate: data.recoveredDate.present
+          ? data.recoveredDate.value
+          : this.recoveredDate,
+      durationInHours: data.durationInHours.present
+          ? data.durationInHours.value
+          : this.durationInHours,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryHistoryLog(')
+          ..write('id: $id, ')
+          ..write('muscleGroupId: $muscleGroupId, ')
+          ..write('fatigueDate: $fatigueDate, ')
+          ..write('recoveredDate: $recoveredDate, ')
+          ..write('durationInHours: $durationInHours')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    muscleGroupId,
+    fatigueDate,
+    recoveredDate,
+    durationInHours,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecoveryHistoryLog &&
+          other.id == this.id &&
+          other.muscleGroupId == this.muscleGroupId &&
+          other.fatigueDate == this.fatigueDate &&
+          other.recoveredDate == this.recoveredDate &&
+          other.durationInHours == this.durationInHours);
+}
+
+class RecoveryHistoryLogsCompanion extends UpdateCompanion<RecoveryHistoryLog> {
+  final Value<String> id;
+  final Value<String> muscleGroupId;
+  final Value<DateTime> fatigueDate;
+  final Value<DateTime> recoveredDate;
+  final Value<int> durationInHours;
+  final Value<int> rowid;
+  const RecoveryHistoryLogsCompanion({
+    this.id = const Value.absent(),
+    this.muscleGroupId = const Value.absent(),
+    this.fatigueDate = const Value.absent(),
+    this.recoveredDate = const Value.absent(),
+    this.durationInHours = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecoveryHistoryLogsCompanion.insert({
+    required String id,
+    required String muscleGroupId,
+    required DateTime fatigueDate,
+    required DateTime recoveredDate,
+    required int durationInHours,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       muscleGroupId = Value(muscleGroupId),
+       fatigueDate = Value(fatigueDate),
+       recoveredDate = Value(recoveredDate),
+       durationInHours = Value(durationInHours);
+  static Insertable<RecoveryHistoryLog> custom({
+    Expression<String>? id,
+    Expression<String>? muscleGroupId,
+    Expression<DateTime>? fatigueDate,
+    Expression<DateTime>? recoveredDate,
+    Expression<int>? durationInHours,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (muscleGroupId != null) 'muscle_group_id': muscleGroupId,
+      if (fatigueDate != null) 'fatigue_date': fatigueDate,
+      if (recoveredDate != null) 'recovered_date': recoveredDate,
+      if (durationInHours != null) 'duration_in_hours': durationInHours,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecoveryHistoryLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? muscleGroupId,
+    Value<DateTime>? fatigueDate,
+    Value<DateTime>? recoveredDate,
+    Value<int>? durationInHours,
+    Value<int>? rowid,
+  }) {
+    return RecoveryHistoryLogsCompanion(
+      id: id ?? this.id,
+      muscleGroupId: muscleGroupId ?? this.muscleGroupId,
+      fatigueDate: fatigueDate ?? this.fatigueDate,
+      recoveredDate: recoveredDate ?? this.recoveredDate,
+      durationInHours: durationInHours ?? this.durationInHours,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (muscleGroupId.present) {
+      map['muscle_group_id'] = Variable<String>(muscleGroupId.value);
+    }
+    if (fatigueDate.present) {
+      map['fatigue_date'] = Variable<DateTime>(fatigueDate.value);
+    }
+    if (recoveredDate.present) {
+      map['recovered_date'] = Variable<DateTime>(recoveredDate.value);
+    }
+    if (durationInHours.present) {
+      map['duration_in_hours'] = Variable<int>(durationInHours.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryHistoryLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('muscleGroupId: $muscleGroupId, ')
+          ..write('fatigueDate: $fatigueDate, ')
+          ..write('recoveredDate: $recoveredDate, ')
+          ..write('durationInHours: $durationInHours, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4028,6 +4835,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $WorkoutHistorySetsTable workoutHistorySets =
       $WorkoutHistorySetsTable(this);
+  late final $DailyContextsTable dailyContexts = $DailyContextsTable(this);
+  late final $RecoveryHistoryLogsTable recoveryHistoryLogs =
+      $RecoveryHistoryLogsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4042,6 +4852,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutHistories,
     muscleRecoveries,
     workoutHistorySets,
+    dailyContexts,
+    recoveryHistoryLogs,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4115,6 +4927,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('workout_history_sets', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'muscle_groups',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('recovery_history_logs', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -4185,6 +5004,33 @@ final class $$MuscleGroupsTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _muscleRecoveriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecoveryHistoryLogsTable,
+    List<RecoveryHistoryLog>
+  >
+  _recoveryHistoryLogsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recoveryHistoryLogs,
+        aliasName: $_aliasNameGenerator(
+          db.muscleGroups.id,
+          db.recoveryHistoryLogs.muscleGroupId,
+        ),
+      );
+
+  $$RecoveryHistoryLogsTableProcessedTableManager get recoveryHistoryLogsRefs {
+    final manager = $$RecoveryHistoryLogsTableTableManager(
+      $_db,
+      $_db.recoveryHistoryLogs,
+    ).filter((f) => f.muscleGroupId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _recoveryHistoryLogsRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -4267,6 +5113,31 @@ class $$MuscleGroupsTableFilterComposer
           }) => $$MuscleRecoveriesTableFilterComposer(
             $db: $db,
             $table: $db.muscleRecoveries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> recoveryHistoryLogsRefs(
+    Expression<bool> Function($$RecoveryHistoryLogsTableFilterComposer f) f,
+  ) {
+    final $$RecoveryHistoryLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recoveryHistoryLogs,
+      getReferencedColumn: (t) => t.muscleGroupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecoveryHistoryLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.recoveryHistoryLogs,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4386,6 +5257,32 @@ class $$MuscleGroupsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> recoveryHistoryLogsRefs<T extends Object>(
+    Expression<T> Function($$RecoveryHistoryLogsTableAnnotationComposer a) f,
+  ) {
+    final $$RecoveryHistoryLogsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.recoveryHistoryLogs,
+          getReferencedColumn: (t) => t.muscleGroupId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecoveryHistoryLogsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recoveryHistoryLogs,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$MuscleGroupsTableTableManager
@@ -4404,6 +5301,7 @@ class $$MuscleGroupsTableTableManager
           PrefetchHooks Function({
             bool sessionMuscleGroupsRefs,
             bool muscleRecoveriesRefs,
+            bool recoveryHistoryLogsRefs,
           })
         > {
   $$MuscleGroupsTableTableManager(_$AppDatabase db, $MuscleGroupsTable table)
@@ -4461,12 +5359,14 @@ class $$MuscleGroupsTableTableManager
               ({
                 sessionMuscleGroupsRefs = false,
                 muscleRecoveriesRefs = false,
+                recoveryHistoryLogsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (sessionMuscleGroupsRefs) db.sessionMuscleGroups,
                     if (muscleRecoveriesRefs) db.muscleRecoveries,
+                    if (recoveryHistoryLogsRefs) db.recoveryHistoryLogs,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4513,6 +5413,27 @@ class $$MuscleGroupsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (recoveryHistoryLogsRefs)
+                        await $_getPrefetchedData<
+                          MuscleGroup,
+                          $MuscleGroupsTable,
+                          RecoveryHistoryLog
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MuscleGroupsTableReferences
+                              ._recoveryHistoryLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MuscleGroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recoveryHistoryLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.muscleGroupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4536,6 +5457,7 @@ typedef $$MuscleGroupsTableProcessedTableManager =
       PrefetchHooks Function({
         bool sessionMuscleGroupsRefs,
         bool muscleRecoveriesRefs,
+        bool recoveryHistoryLogsRefs,
       })
     >;
 typedef $$TrainingSessionsTableCreateCompanionBuilder =
@@ -8481,6 +9403,576 @@ typedef $$WorkoutHistorySetsTableProcessedTableManager =
       WorkoutHistorySet,
       PrefetchHooks Function({bool workoutHistoryId})
     >;
+typedef $$DailyContextsTableCreateCompanionBuilder =
+    DailyContextsCompanion Function({
+      required String id,
+      required DateTime date,
+      required String sleepTags,
+      required String nutritionTags,
+      required String stressTags,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+typedef $$DailyContextsTableUpdateCompanionBuilder =
+    DailyContextsCompanion Function({
+      Value<String> id,
+      Value<DateTime> date,
+      Value<String> sleepTags,
+      Value<String> nutritionTags,
+      Value<String> stressTags,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+
+class $$DailyContextsTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyContextsTable> {
+  $$DailyContextsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sleepTags => $composableBuilder(
+    column: $table.sleepTags,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nutritionTags => $composableBuilder(
+    column: $table.nutritionTags,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stressTags => $composableBuilder(
+    column: $table.stressTags,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyContextsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyContextsTable> {
+  $$DailyContextsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sleepTags => $composableBuilder(
+    column: $table.sleepTags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nutritionTags => $composableBuilder(
+    column: $table.nutritionTags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stressTags => $composableBuilder(
+    column: $table.stressTags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyContextsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyContextsTable> {
+  $$DailyContextsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get sleepTags =>
+      $composableBuilder(column: $table.sleepTags, builder: (column) => column);
+
+  GeneratedColumn<String> get nutritionTags => $composableBuilder(
+    column: $table.nutritionTags,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stressTags => $composableBuilder(
+    column: $table.stressTags,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+}
+
+class $$DailyContextsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyContextsTable,
+          DailyContext,
+          $$DailyContextsTableFilterComposer,
+          $$DailyContextsTableOrderingComposer,
+          $$DailyContextsTableAnnotationComposer,
+          $$DailyContextsTableCreateCompanionBuilder,
+          $$DailyContextsTableUpdateCompanionBuilder,
+          (
+            DailyContext,
+            BaseReferences<_$AppDatabase, $DailyContextsTable, DailyContext>,
+          ),
+          DailyContext,
+          PrefetchHooks Function()
+        > {
+  $$DailyContextsTableTableManager(_$AppDatabase db, $DailyContextsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyContextsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyContextsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyContextsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String> sleepTags = const Value.absent(),
+                Value<String> nutritionTags = const Value.absent(),
+                Value<String> stressTags = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyContextsCompanion(
+                id: id,
+                date: date,
+                sleepTags: sleepTags,
+                nutritionTags: nutritionTags,
+                stressTags: stressTags,
+                notes: notes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime date,
+                required String sleepTags,
+                required String nutritionTags,
+                required String stressTags,
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyContextsCompanion.insert(
+                id: id,
+                date: date,
+                sleepTags: sleepTags,
+                nutritionTags: nutritionTags,
+                stressTags: stressTags,
+                notes: notes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyContextsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyContextsTable,
+      DailyContext,
+      $$DailyContextsTableFilterComposer,
+      $$DailyContextsTableOrderingComposer,
+      $$DailyContextsTableAnnotationComposer,
+      $$DailyContextsTableCreateCompanionBuilder,
+      $$DailyContextsTableUpdateCompanionBuilder,
+      (
+        DailyContext,
+        BaseReferences<_$AppDatabase, $DailyContextsTable, DailyContext>,
+      ),
+      DailyContext,
+      PrefetchHooks Function()
+    >;
+typedef $$RecoveryHistoryLogsTableCreateCompanionBuilder =
+    RecoveryHistoryLogsCompanion Function({
+      required String id,
+      required String muscleGroupId,
+      required DateTime fatigueDate,
+      required DateTime recoveredDate,
+      required int durationInHours,
+      Value<int> rowid,
+    });
+typedef $$RecoveryHistoryLogsTableUpdateCompanionBuilder =
+    RecoveryHistoryLogsCompanion Function({
+      Value<String> id,
+      Value<String> muscleGroupId,
+      Value<DateTime> fatigueDate,
+      Value<DateTime> recoveredDate,
+      Value<int> durationInHours,
+      Value<int> rowid,
+    });
+
+final class $$RecoveryHistoryLogsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RecoveryHistoryLogsTable,
+          RecoveryHistoryLog
+        > {
+  $$RecoveryHistoryLogsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MuscleGroupsTable _muscleGroupIdTable(_$AppDatabase db) =>
+      db.muscleGroups.createAlias(
+        $_aliasNameGenerator(
+          db.recoveryHistoryLogs.muscleGroupId,
+          db.muscleGroups.id,
+        ),
+      );
+
+  $$MuscleGroupsTableProcessedTableManager get muscleGroupId {
+    final $_column = $_itemColumn<String>('muscle_group_id')!;
+
+    final manager = $$MuscleGroupsTableTableManager(
+      $_db,
+      $_db.muscleGroups,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_muscleGroupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RecoveryHistoryLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecoveryHistoryLogsTable> {
+  $$RecoveryHistoryLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fatigueDate => $composableBuilder(
+    column: $table.fatigueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recoveredDate => $composableBuilder(
+    column: $table.recoveredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationInHours => $composableBuilder(
+    column: $table.durationInHours,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MuscleGroupsTableFilterComposer get muscleGroupId {
+    final $$MuscleGroupsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryHistoryLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecoveryHistoryLogsTable> {
+  $$RecoveryHistoryLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fatigueDate => $composableBuilder(
+    column: $table.fatigueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recoveredDate => $composableBuilder(
+    column: $table.recoveredDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationInHours => $composableBuilder(
+    column: $table.durationInHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MuscleGroupsTableOrderingComposer get muscleGroupId {
+    final $$MuscleGroupsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryHistoryLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecoveryHistoryLogsTable> {
+  $$RecoveryHistoryLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fatigueDate => $composableBuilder(
+    column: $table.fatigueDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recoveredDate => $composableBuilder(
+    column: $table.recoveredDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationInHours => $composableBuilder(
+    column: $table.durationInHours,
+    builder: (column) => column,
+  );
+
+  $$MuscleGroupsTableAnnotationComposer get muscleGroupId {
+    final $$MuscleGroupsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.muscleGroupId,
+      referencedTable: $db.muscleGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MuscleGroupsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.muscleGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryHistoryLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecoveryHistoryLogsTable,
+          RecoveryHistoryLog,
+          $$RecoveryHistoryLogsTableFilterComposer,
+          $$RecoveryHistoryLogsTableOrderingComposer,
+          $$RecoveryHistoryLogsTableAnnotationComposer,
+          $$RecoveryHistoryLogsTableCreateCompanionBuilder,
+          $$RecoveryHistoryLogsTableUpdateCompanionBuilder,
+          (RecoveryHistoryLog, $$RecoveryHistoryLogsTableReferences),
+          RecoveryHistoryLog,
+          PrefetchHooks Function({bool muscleGroupId})
+        > {
+  $$RecoveryHistoryLogsTableTableManager(
+    _$AppDatabase db,
+    $RecoveryHistoryLogsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecoveryHistoryLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecoveryHistoryLogsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RecoveryHistoryLogsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> muscleGroupId = const Value.absent(),
+                Value<DateTime> fatigueDate = const Value.absent(),
+                Value<DateTime> recoveredDate = const Value.absent(),
+                Value<int> durationInHours = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecoveryHistoryLogsCompanion(
+                id: id,
+                muscleGroupId: muscleGroupId,
+                fatigueDate: fatigueDate,
+                recoveredDate: recoveredDate,
+                durationInHours: durationInHours,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String muscleGroupId,
+                required DateTime fatigueDate,
+                required DateTime recoveredDate,
+                required int durationInHours,
+                Value<int> rowid = const Value.absent(),
+              }) => RecoveryHistoryLogsCompanion.insert(
+                id: id,
+                muscleGroupId: muscleGroupId,
+                fatigueDate: fatigueDate,
+                recoveredDate: recoveredDate,
+                durationInHours: durationInHours,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RecoveryHistoryLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({muscleGroupId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (muscleGroupId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.muscleGroupId,
+                                referencedTable:
+                                    $$RecoveryHistoryLogsTableReferences
+                                        ._muscleGroupIdTable(db),
+                                referencedColumn:
+                                    $$RecoveryHistoryLogsTableReferences
+                                        ._muscleGroupIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RecoveryHistoryLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecoveryHistoryLogsTable,
+      RecoveryHistoryLog,
+      $$RecoveryHistoryLogsTableFilterComposer,
+      $$RecoveryHistoryLogsTableOrderingComposer,
+      $$RecoveryHistoryLogsTableAnnotationComposer,
+      $$RecoveryHistoryLogsTableCreateCompanionBuilder,
+      $$RecoveryHistoryLogsTableUpdateCompanionBuilder,
+      (RecoveryHistoryLog, $$RecoveryHistoryLogsTableReferences),
+      RecoveryHistoryLog,
+      PrefetchHooks Function({bool muscleGroupId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8503,4 +9995,8 @@ class $AppDatabaseManager {
       $$MuscleRecoveriesTableTableManager(_db, _db.muscleRecoveries);
   $$WorkoutHistorySetsTableTableManager get workoutHistorySets =>
       $$WorkoutHistorySetsTableTableManager(_db, _db.workoutHistorySets);
+  $$DailyContextsTableTableManager get dailyContexts =>
+      $$DailyContextsTableTableManager(_db, _db.dailyContexts);
+  $$RecoveryHistoryLogsTableTableManager get recoveryHistoryLogs =>
+      $$RecoveryHistoryLogsTableTableManager(_db, _db.recoveryHistoryLogs);
 }

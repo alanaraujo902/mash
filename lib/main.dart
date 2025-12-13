@@ -8,6 +8,7 @@ import 'providers/workout_provider.dart';
 import 'providers/recovery_provider.dart';
 import 'providers/workout_timer_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/daily_context_provider.dart';
 import 'utils/app_colors.dart';
 import 'screens/home_screen.dart';
 
@@ -47,6 +48,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DailyContextProvider(database),
         ),
       ],
       child: Consumer<ThemeProvider>(

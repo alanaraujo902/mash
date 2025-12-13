@@ -138,6 +138,33 @@ class MuscleRecoveries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+// NOVA TABELA: Histórico de Recuperação
+@DataClassName('RecoveryHistoryLog')
+class RecoveryHistoryLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get muscleGroupId => text().references(MuscleGroups, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get fatigueDate => dateTime()(); // Quando o treino acabou
+  DateTimeColumn get recoveredDate => dateTime()(); // Quando o user marcou recuperado
+  IntColumn get durationInHours => integer()(); // Duração calculada
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// NOVA TABELA: Contexto Diário
+@DataClassName('DailyContext')
+class DailyContexts extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get date => dateTime()(); // Data do registro (sem hora, para unicidade)
+  TextColumn get sleepTags => text()(); // JSON List
+  TextColumn get nutritionTags => text()(); // JSON List
+  TextColumn get stressTags => text()(); // JSON List
+  TextColumn get notes => text().nullable()(); // Campo extra opcional
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   MuscleGroups,
   TrainingSessions,
@@ -148,13 +175,15 @@ class MuscleRecoveries extends Table {
   WorkoutHistories,
   MuscleRecoveries,
   WorkoutHistorySets,
+  DailyContexts,
+  RecoveryHistoryLogs,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 9 (ciclo de treino no nível da sessão)
+  // Versão atualizada para 11 (histórico de recuperação)
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -200,6 +229,16 @@ class AppDatabase extends _$AppDatabase {
         // Migração v9: Adicionar coluna isDone no nível da sessão de treino
         if (from < 9) {
           await m.addColumn(trainingSessions, trainingSessions.isDone);
+        }
+        
+        // Migração v10: Criar tabela de contexto diário
+        if (from < 10) {
+          await m.createTable(dailyContexts);
+        }
+        
+        // Migração v11: Criar tabela de histórico de recuperação
+        if (from < 11) {
+          await m.createTable(recoveryHistoryLogs);
         }
       },
     );
@@ -491,6 +530,34 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
     }
+  }
+
+  // MÉTODOS DE ACESSO PARA HISTÓRICO DE RECUPERAÇÃO
+  Future<int> insertRecoveryLog(RecoveryHistoryLog log) {
+    return into(recoveryHistoryLogs).insert(log);
+  }
+
+  Future<List<RecoveryHistoryLog>> getRecoveryHistory(String muscleGroupId) {
+    return (select(recoveryHistoryLogs)
+          ..where((tbl) => tbl.muscleGroupId.equals(muscleGroupId))
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.recoveredDate, mode: OrderingMode.desc)]))
+        .get();
+  }
+
+  // MÉTODOS DE CONTEXTO DIÁRIO
+  Future<DailyContext?> getDailyContextByDate(DateTime date) {
+    // Filtra pelo dia (ignorando hora)
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    
+    return (select(dailyContexts)
+      ..where((tbl) => tbl.date.isBiggerOrEqualValue(start) & tbl.date.isSmallerThanValue(end))
+      ..limit(1))
+      .getSingleOrNull();
+  }
+
+  Future<int> insertDailyContext(DailyContext context) {
+    return into(dailyContexts).insert(context);
   }
 
   // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)
