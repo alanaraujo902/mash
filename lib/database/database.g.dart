@@ -4812,6 +4812,642 @@ class RecoveryHistoryLogsCompanion extends UpdateCompanion<RecoveryHistoryLog> {
   }
 }
 
+class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MealsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mealIndexMeta = const VerificationMeta(
+    'mealIndex',
+  );
+  @override
+  late final GeneratedColumn<int> mealIndex = GeneratedColumn<int>(
+    'meal_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _caloriesMeta = const VerificationMeta(
+    'calories',
+  );
+  @override
+  late final GeneratedColumn<double> calories = GeneratedColumn<double>(
+    'calories',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _carbsMeta = const VerificationMeta('carbs');
+  @override
+  late final GeneratedColumn<double> carbs = GeneratedColumn<double>(
+    'carbs',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _proteinMeta = const VerificationMeta(
+    'protein',
+  );
+  @override
+  late final GeneratedColumn<double> protein = GeneratedColumn<double>(
+    'protein',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _totalFatMeta = const VerificationMeta(
+    'totalFat',
+  );
+  @override
+  late final GeneratedColumn<double> totalFat = GeneratedColumn<double>(
+    'total_fat',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _saturatedFatMeta = const VerificationMeta(
+    'saturatedFat',
+  );
+  @override
+  late final GeneratedColumn<double> saturatedFat = GeneratedColumn<double>(
+    'saturated_fat',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _fiberMeta = const VerificationMeta('fiber');
+  @override
+  late final GeneratedColumn<double> fiber = GeneratedColumn<double>(
+    'fiber',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _sodiumMeta = const VerificationMeta('sodium');
+  @override
+  late final GeneratedColumn<double> sodium = GeneratedColumn<double>(
+    'sodium',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _calciumMeta = const VerificationMeta(
+    'calcium',
+  );
+  @override
+  late final GeneratedColumn<double> calcium = GeneratedColumn<double>(
+    'calcium',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    mealIndex,
+    calories,
+    carbs,
+    protein,
+    totalFat,
+    saturatedFat,
+    fiber,
+    sodium,
+    calcium,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'meals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Meal> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('meal_index')) {
+      context.handle(
+        _mealIndexMeta,
+        mealIndex.isAcceptableOrUnknown(data['meal_index']!, _mealIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mealIndexMeta);
+    }
+    if (data.containsKey('calories')) {
+      context.handle(
+        _caloriesMeta,
+        calories.isAcceptableOrUnknown(data['calories']!, _caloriesMeta),
+      );
+    }
+    if (data.containsKey('carbs')) {
+      context.handle(
+        _carbsMeta,
+        carbs.isAcceptableOrUnknown(data['carbs']!, _carbsMeta),
+      );
+    }
+    if (data.containsKey('protein')) {
+      context.handle(
+        _proteinMeta,
+        protein.isAcceptableOrUnknown(data['protein']!, _proteinMeta),
+      );
+    }
+    if (data.containsKey('total_fat')) {
+      context.handle(
+        _totalFatMeta,
+        totalFat.isAcceptableOrUnknown(data['total_fat']!, _totalFatMeta),
+      );
+    }
+    if (data.containsKey('saturated_fat')) {
+      context.handle(
+        _saturatedFatMeta,
+        saturatedFat.isAcceptableOrUnknown(
+          data['saturated_fat']!,
+          _saturatedFatMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fiber')) {
+      context.handle(
+        _fiberMeta,
+        fiber.isAcceptableOrUnknown(data['fiber']!, _fiberMeta),
+      );
+    }
+    if (data.containsKey('sodium')) {
+      context.handle(
+        _sodiumMeta,
+        sodium.isAcceptableOrUnknown(data['sodium']!, _sodiumMeta),
+      );
+    }
+    if (data.containsKey('calcium')) {
+      context.handle(
+        _calciumMeta,
+        calcium.isAcceptableOrUnknown(data['calcium']!, _calciumMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Meal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Meal(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      mealIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}meal_index'],
+      )!,
+      calories: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calories'],
+      )!,
+      carbs: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}carbs'],
+      )!,
+      protein: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}protein'],
+      )!,
+      totalFat: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_fat'],
+      )!,
+      saturatedFat: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}saturated_fat'],
+      )!,
+      fiber: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fiber'],
+      )!,
+      sodium: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}sodium'],
+      )!,
+      calcium: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calcium'],
+      )!,
+    );
+  }
+
+  @override
+  $MealsTable createAlias(String alias) {
+    return $MealsTable(attachedDatabase, alias);
+  }
+}
+
+class Meal extends DataClass implements Insertable<Meal> {
+  final String id;
+  final DateTime date;
+  final int mealIndex;
+  final double calories;
+  final double carbs;
+  final double protein;
+  final double totalFat;
+  final double saturatedFat;
+  final double fiber;
+  final double sodium;
+  final double calcium;
+  const Meal({
+    required this.id,
+    required this.date,
+    required this.mealIndex,
+    required this.calories,
+    required this.carbs,
+    required this.protein,
+    required this.totalFat,
+    required this.saturatedFat,
+    required this.fiber,
+    required this.sodium,
+    required this.calcium,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['meal_index'] = Variable<int>(mealIndex);
+    map['calories'] = Variable<double>(calories);
+    map['carbs'] = Variable<double>(carbs);
+    map['protein'] = Variable<double>(protein);
+    map['total_fat'] = Variable<double>(totalFat);
+    map['saturated_fat'] = Variable<double>(saturatedFat);
+    map['fiber'] = Variable<double>(fiber);
+    map['sodium'] = Variable<double>(sodium);
+    map['calcium'] = Variable<double>(calcium);
+    return map;
+  }
+
+  MealsCompanion toCompanion(bool nullToAbsent) {
+    return MealsCompanion(
+      id: Value(id),
+      date: Value(date),
+      mealIndex: Value(mealIndex),
+      calories: Value(calories),
+      carbs: Value(carbs),
+      protein: Value(protein),
+      totalFat: Value(totalFat),
+      saturatedFat: Value(saturatedFat),
+      fiber: Value(fiber),
+      sodium: Value(sodium),
+      calcium: Value(calcium),
+    );
+  }
+
+  factory Meal.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Meal(
+      id: serializer.fromJson<String>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      mealIndex: serializer.fromJson<int>(json['mealIndex']),
+      calories: serializer.fromJson<double>(json['calories']),
+      carbs: serializer.fromJson<double>(json['carbs']),
+      protein: serializer.fromJson<double>(json['protein']),
+      totalFat: serializer.fromJson<double>(json['totalFat']),
+      saturatedFat: serializer.fromJson<double>(json['saturatedFat']),
+      fiber: serializer.fromJson<double>(json['fiber']),
+      sodium: serializer.fromJson<double>(json['sodium']),
+      calcium: serializer.fromJson<double>(json['calcium']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'mealIndex': serializer.toJson<int>(mealIndex),
+      'calories': serializer.toJson<double>(calories),
+      'carbs': serializer.toJson<double>(carbs),
+      'protein': serializer.toJson<double>(protein),
+      'totalFat': serializer.toJson<double>(totalFat),
+      'saturatedFat': serializer.toJson<double>(saturatedFat),
+      'fiber': serializer.toJson<double>(fiber),
+      'sodium': serializer.toJson<double>(sodium),
+      'calcium': serializer.toJson<double>(calcium),
+    };
+  }
+
+  Meal copyWith({
+    String? id,
+    DateTime? date,
+    int? mealIndex,
+    double? calories,
+    double? carbs,
+    double? protein,
+    double? totalFat,
+    double? saturatedFat,
+    double? fiber,
+    double? sodium,
+    double? calcium,
+  }) => Meal(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    mealIndex: mealIndex ?? this.mealIndex,
+    calories: calories ?? this.calories,
+    carbs: carbs ?? this.carbs,
+    protein: protein ?? this.protein,
+    totalFat: totalFat ?? this.totalFat,
+    saturatedFat: saturatedFat ?? this.saturatedFat,
+    fiber: fiber ?? this.fiber,
+    sodium: sodium ?? this.sodium,
+    calcium: calcium ?? this.calcium,
+  );
+  Meal copyWithCompanion(MealsCompanion data) {
+    return Meal(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      mealIndex: data.mealIndex.present ? data.mealIndex.value : this.mealIndex,
+      calories: data.calories.present ? data.calories.value : this.calories,
+      carbs: data.carbs.present ? data.carbs.value : this.carbs,
+      protein: data.protein.present ? data.protein.value : this.protein,
+      totalFat: data.totalFat.present ? data.totalFat.value : this.totalFat,
+      saturatedFat: data.saturatedFat.present
+          ? data.saturatedFat.value
+          : this.saturatedFat,
+      fiber: data.fiber.present ? data.fiber.value : this.fiber,
+      sodium: data.sodium.present ? data.sodium.value : this.sodium,
+      calcium: data.calcium.present ? data.calcium.value : this.calcium,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Meal(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('mealIndex: $mealIndex, ')
+          ..write('calories: $calories, ')
+          ..write('carbs: $carbs, ')
+          ..write('protein: $protein, ')
+          ..write('totalFat: $totalFat, ')
+          ..write('saturatedFat: $saturatedFat, ')
+          ..write('fiber: $fiber, ')
+          ..write('sodium: $sodium, ')
+          ..write('calcium: $calcium')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    date,
+    mealIndex,
+    calories,
+    carbs,
+    protein,
+    totalFat,
+    saturatedFat,
+    fiber,
+    sodium,
+    calcium,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Meal &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.mealIndex == this.mealIndex &&
+          other.calories == this.calories &&
+          other.carbs == this.carbs &&
+          other.protein == this.protein &&
+          other.totalFat == this.totalFat &&
+          other.saturatedFat == this.saturatedFat &&
+          other.fiber == this.fiber &&
+          other.sodium == this.sodium &&
+          other.calcium == this.calcium);
+}
+
+class MealsCompanion extends UpdateCompanion<Meal> {
+  final Value<String> id;
+  final Value<DateTime> date;
+  final Value<int> mealIndex;
+  final Value<double> calories;
+  final Value<double> carbs;
+  final Value<double> protein;
+  final Value<double> totalFat;
+  final Value<double> saturatedFat;
+  final Value<double> fiber;
+  final Value<double> sodium;
+  final Value<double> calcium;
+  final Value<int> rowid;
+  const MealsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.mealIndex = const Value.absent(),
+    this.calories = const Value.absent(),
+    this.carbs = const Value.absent(),
+    this.protein = const Value.absent(),
+    this.totalFat = const Value.absent(),
+    this.saturatedFat = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.sodium = const Value.absent(),
+    this.calcium = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MealsCompanion.insert({
+    required String id,
+    required DateTime date,
+    required int mealIndex,
+    this.calories = const Value.absent(),
+    this.carbs = const Value.absent(),
+    this.protein = const Value.absent(),
+    this.totalFat = const Value.absent(),
+    this.saturatedFat = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.sodium = const Value.absent(),
+    this.calcium = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       date = Value(date),
+       mealIndex = Value(mealIndex);
+  static Insertable<Meal> custom({
+    Expression<String>? id,
+    Expression<DateTime>? date,
+    Expression<int>? mealIndex,
+    Expression<double>? calories,
+    Expression<double>? carbs,
+    Expression<double>? protein,
+    Expression<double>? totalFat,
+    Expression<double>? saturatedFat,
+    Expression<double>? fiber,
+    Expression<double>? sodium,
+    Expression<double>? calcium,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (mealIndex != null) 'meal_index': mealIndex,
+      if (calories != null) 'calories': calories,
+      if (carbs != null) 'carbs': carbs,
+      if (protein != null) 'protein': protein,
+      if (totalFat != null) 'total_fat': totalFat,
+      if (saturatedFat != null) 'saturated_fat': saturatedFat,
+      if (fiber != null) 'fiber': fiber,
+      if (sodium != null) 'sodium': sodium,
+      if (calcium != null) 'calcium': calcium,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MealsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? date,
+    Value<int>? mealIndex,
+    Value<double>? calories,
+    Value<double>? carbs,
+    Value<double>? protein,
+    Value<double>? totalFat,
+    Value<double>? saturatedFat,
+    Value<double>? fiber,
+    Value<double>? sodium,
+    Value<double>? calcium,
+    Value<int>? rowid,
+  }) {
+    return MealsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      mealIndex: mealIndex ?? this.mealIndex,
+      calories: calories ?? this.calories,
+      carbs: carbs ?? this.carbs,
+      protein: protein ?? this.protein,
+      totalFat: totalFat ?? this.totalFat,
+      saturatedFat: saturatedFat ?? this.saturatedFat,
+      fiber: fiber ?? this.fiber,
+      sodium: sodium ?? this.sodium,
+      calcium: calcium ?? this.calcium,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (mealIndex.present) {
+      map['meal_index'] = Variable<int>(mealIndex.value);
+    }
+    if (calories.present) {
+      map['calories'] = Variable<double>(calories.value);
+    }
+    if (carbs.present) {
+      map['carbs'] = Variable<double>(carbs.value);
+    }
+    if (protein.present) {
+      map['protein'] = Variable<double>(protein.value);
+    }
+    if (totalFat.present) {
+      map['total_fat'] = Variable<double>(totalFat.value);
+    }
+    if (saturatedFat.present) {
+      map['saturated_fat'] = Variable<double>(saturatedFat.value);
+    }
+    if (fiber.present) {
+      map['fiber'] = Variable<double>(fiber.value);
+    }
+    if (sodium.present) {
+      map['sodium'] = Variable<double>(sodium.value);
+    }
+    if (calcium.present) {
+      map['calcium'] = Variable<double>(calcium.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('mealIndex: $mealIndex, ')
+          ..write('calories: $calories, ')
+          ..write('carbs: $carbs, ')
+          ..write('protein: $protein, ')
+          ..write('totalFat: $totalFat, ')
+          ..write('saturatedFat: $saturatedFat, ')
+          ..write('fiber: $fiber, ')
+          ..write('sodium: $sodium, ')
+          ..write('calcium: $calcium, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4838,6 +5474,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DailyContextsTable dailyContexts = $DailyContextsTable(this);
   late final $RecoveryHistoryLogsTable recoveryHistoryLogs =
       $RecoveryHistoryLogsTable(this);
+  late final $MealsTable meals = $MealsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4854,6 +5491,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutHistorySets,
     dailyContexts,
     recoveryHistoryLogs,
+    meals,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -9973,6 +10611,315 @@ typedef $$RecoveryHistoryLogsTableProcessedTableManager =
       RecoveryHistoryLog,
       PrefetchHooks Function({bool muscleGroupId})
     >;
+typedef $$MealsTableCreateCompanionBuilder =
+    MealsCompanion Function({
+      required String id,
+      required DateTime date,
+      required int mealIndex,
+      Value<double> calories,
+      Value<double> carbs,
+      Value<double> protein,
+      Value<double> totalFat,
+      Value<double> saturatedFat,
+      Value<double> fiber,
+      Value<double> sodium,
+      Value<double> calcium,
+      Value<int> rowid,
+    });
+typedef $$MealsTableUpdateCompanionBuilder =
+    MealsCompanion Function({
+      Value<String> id,
+      Value<DateTime> date,
+      Value<int> mealIndex,
+      Value<double> calories,
+      Value<double> carbs,
+      Value<double> protein,
+      Value<double> totalFat,
+      Value<double> saturatedFat,
+      Value<double> fiber,
+      Value<double> sodium,
+      Value<double> calcium,
+      Value<int> rowid,
+    });
+
+class $$MealsTableFilterComposer extends Composer<_$AppDatabase, $MealsTable> {
+  $$MealsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mealIndex => $composableBuilder(
+    column: $table.mealIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get calories => $composableBuilder(
+    column: $table.calories,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get carbs => $composableBuilder(
+    column: $table.carbs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get protein => $composableBuilder(
+    column: $table.protein,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalFat => $composableBuilder(
+    column: $table.totalFat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get saturatedFat => $composableBuilder(
+    column: $table.saturatedFat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get fiber => $composableBuilder(
+    column: $table.fiber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get sodium => $composableBuilder(
+    column: $table.sodium,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get calcium => $composableBuilder(
+    column: $table.calcium,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MealsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MealsTable> {
+  $$MealsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get mealIndex => $composableBuilder(
+    column: $table.mealIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get calories => $composableBuilder(
+    column: $table.calories,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get carbs => $composableBuilder(
+    column: $table.carbs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get protein => $composableBuilder(
+    column: $table.protein,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalFat => $composableBuilder(
+    column: $table.totalFat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get saturatedFat => $composableBuilder(
+    column: $table.saturatedFat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get fiber => $composableBuilder(
+    column: $table.fiber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get sodium => $composableBuilder(
+    column: $table.sodium,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get calcium => $composableBuilder(
+    column: $table.calcium,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MealsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MealsTable> {
+  $$MealsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get mealIndex =>
+      $composableBuilder(column: $table.mealIndex, builder: (column) => column);
+
+  GeneratedColumn<double> get calories =>
+      $composableBuilder(column: $table.calories, builder: (column) => column);
+
+  GeneratedColumn<double> get carbs =>
+      $composableBuilder(column: $table.carbs, builder: (column) => column);
+
+  GeneratedColumn<double> get protein =>
+      $composableBuilder(column: $table.protein, builder: (column) => column);
+
+  GeneratedColumn<double> get totalFat =>
+      $composableBuilder(column: $table.totalFat, builder: (column) => column);
+
+  GeneratedColumn<double> get saturatedFat => $composableBuilder(
+    column: $table.saturatedFat,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get fiber =>
+      $composableBuilder(column: $table.fiber, builder: (column) => column);
+
+  GeneratedColumn<double> get sodium =>
+      $composableBuilder(column: $table.sodium, builder: (column) => column);
+
+  GeneratedColumn<double> get calcium =>
+      $composableBuilder(column: $table.calcium, builder: (column) => column);
+}
+
+class $$MealsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MealsTable,
+          Meal,
+          $$MealsTableFilterComposer,
+          $$MealsTableOrderingComposer,
+          $$MealsTableAnnotationComposer,
+          $$MealsTableCreateCompanionBuilder,
+          $$MealsTableUpdateCompanionBuilder,
+          (Meal, BaseReferences<_$AppDatabase, $MealsTable, Meal>),
+          Meal,
+          PrefetchHooks Function()
+        > {
+  $$MealsTableTableManager(_$AppDatabase db, $MealsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MealsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MealsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MealsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> mealIndex = const Value.absent(),
+                Value<double> calories = const Value.absent(),
+                Value<double> carbs = const Value.absent(),
+                Value<double> protein = const Value.absent(),
+                Value<double> totalFat = const Value.absent(),
+                Value<double> saturatedFat = const Value.absent(),
+                Value<double> fiber = const Value.absent(),
+                Value<double> sodium = const Value.absent(),
+                Value<double> calcium = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MealsCompanion(
+                id: id,
+                date: date,
+                mealIndex: mealIndex,
+                calories: calories,
+                carbs: carbs,
+                protein: protein,
+                totalFat: totalFat,
+                saturatedFat: saturatedFat,
+                fiber: fiber,
+                sodium: sodium,
+                calcium: calcium,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime date,
+                required int mealIndex,
+                Value<double> calories = const Value.absent(),
+                Value<double> carbs = const Value.absent(),
+                Value<double> protein = const Value.absent(),
+                Value<double> totalFat = const Value.absent(),
+                Value<double> saturatedFat = const Value.absent(),
+                Value<double> fiber = const Value.absent(),
+                Value<double> sodium = const Value.absent(),
+                Value<double> calcium = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MealsCompanion.insert(
+                id: id,
+                date: date,
+                mealIndex: mealIndex,
+                calories: calories,
+                carbs: carbs,
+                protein: protein,
+                totalFat: totalFat,
+                saturatedFat: saturatedFat,
+                fiber: fiber,
+                sodium: sodium,
+                calcium: calcium,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MealsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MealsTable,
+      Meal,
+      $$MealsTableFilterComposer,
+      $$MealsTableOrderingComposer,
+      $$MealsTableAnnotationComposer,
+      $$MealsTableCreateCompanionBuilder,
+      $$MealsTableUpdateCompanionBuilder,
+      (Meal, BaseReferences<_$AppDatabase, $MealsTable, Meal>),
+      Meal,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9999,4 +10946,6 @@ class $AppDatabaseManager {
       $$DailyContextsTableTableManager(_db, _db.dailyContexts);
   $$RecoveryHistoryLogsTableTableManager get recoveryHistoryLogs =>
       $$RecoveryHistoryLogsTableTableManager(_db, _db.recoveryHistoryLogs);
+  $$MealsTableTableManager get meals =>
+      $$MealsTableTableManager(_db, _db.meals);
 }

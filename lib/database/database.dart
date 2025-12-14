@@ -165,6 +165,27 @@ class DailyContexts extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+// NOVA TABELA: Refeições
+@DataClassName('Meal')
+class Meals extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get date => dateTime()(); // Data da refeição
+  IntColumn get mealIndex => integer()(); // Refeição 1, 2, 3...
+  
+  // Nutrientes solicitados
+  RealColumn get calories => real().withDefault(const Constant(0.0))();
+  RealColumn get carbs => real().withDefault(const Constant(0.0))();
+  RealColumn get protein => real().withDefault(const Constant(0.0))(); // Proteína (essencial para músculo)
+  RealColumn get totalFat => real().withDefault(const Constant(0.0))();
+  RealColumn get saturatedFat => real().withDefault(const Constant(0.0))();
+  RealColumn get fiber => real().withDefault(const Constant(0.0))();
+  RealColumn get sodium => real().withDefault(const Constant(0.0))();
+  RealColumn get calcium => real().withDefault(const Constant(0.0))();
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   MuscleGroups,
   TrainingSessions,
@@ -177,13 +198,14 @@ class DailyContexts extends Table {
   WorkoutHistorySets,
   DailyContexts,
   RecoveryHistoryLogs,
+  Meals,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 11 (histórico de recuperação)
+  // Versão atualizada para 12 (refeições/dieta)
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -239,6 +261,11 @@ class AppDatabase extends _$AppDatabase {
         // Migração v11: Criar tabela de histórico de recuperação
         if (from < 11) {
           await m.createTable(recoveryHistoryLogs);
+        }
+        
+        // Migração v12: Criar tabela de refeições
+        if (from < 12) {
+          await m.createTable(meals);
         }
       },
     );
@@ -558,6 +585,30 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> insertDailyContext(DailyContext context) {
     return into(dailyContexts).insert(context);
+  }
+
+  // MÉTODOS DE ACESSO A DIETA
+  Future<List<Meal>> getMealsByDate(DateTime date) {
+    // Filtra pelo dia (00:00 até 23:59)
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    
+    return (select(meals)
+      ..where((tbl) => tbl.date.isBiggerOrEqualValue(start) & tbl.date.isSmallerThanValue(end))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.mealIndex)]))
+      .get();
+  }
+
+  Future<int> insertMeal(Meal meal) {
+    return into(meals).insert(meal);
+  }
+
+  Future<bool> updateMeal(Meal meal) {
+    return update(meals).replace(meal);
+  }
+
+  Future<int> deleteMeal(String id) {
+    return (delete(meals)..where((tbl) => tbl.id.equals(id))).go();
   }
 
   // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)

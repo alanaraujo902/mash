@@ -129,13 +129,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     final titleColor = isNeon ? AppColors.neonGreen : Colors.black87;
     final loadingColor = isNeon ? AppColors.neonPurple : Theme.of(context).primaryColor;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Evolução'),
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Padding(
+    // REMOVIDO: Scaffold e AppBar - agora é apenas o conteúdo
+    return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -276,8 +271,6 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
             ),
           ],
         ),
-        ),
-      ),
     );
   }
 

@@ -33,17 +33,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final isNeon = context.watch<ThemeProvider>().isNeon;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Histórico Completo'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
+    // REMOVIDO: Scaffold e AppBar - agora é apenas o conteúdo
+    return Column(
+      children: [
+        // Barra simples com botão de refresh
+        Container(
+          padding: const EdgeInsets.all(8),
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
             onPressed: _loadData,
-          )
-        ],
-      ),
-      body: FutureBuilder<List<HistorySessionDTO>>(
+            icon: const Icon(Icons.refresh),
+            label: const Text("Atualizar"),
+          ),
+        ),
+        Expanded(
+          child: FutureBuilder<List<HistorySessionDTO>>(
         future: _historyFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -87,7 +91,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             },
           );
         },
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
