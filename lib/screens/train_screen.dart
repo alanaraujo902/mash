@@ -5,11 +5,13 @@ import '../providers/muscle_group_provider.dart';
 import '../providers/workout_timer_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/daily_context_provider.dart';
+import '../providers/running_provider.dart';
 import '../database/database.dart';
 import '../widgets/neon_card.dart';
 import '../widgets/daily_context_dialog.dart';
 import '../utils/app_colors.dart';
 import 'active_workout_screen.dart';
+import 'active_running_screen.dart';
 
 class TrainScreen extends StatelessWidget {
   const TrainScreen({Key? key}) : super(key: key);
@@ -73,32 +75,166 @@ class TrainScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: Consumer3<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider>(
-        builder: (context, trainingProvider, muscleProvider, themeProvider, _) {
+        child: Consumer4<TrainingSessionProvider, MuscleGroupProvider, ThemeProvider, RunningProvider>(
+        builder: (context, trainingProvider, muscleProvider, themeProvider, runningProvider, _) {
           final sessions = trainingProvider.trainingSessions;
           final isNeon = themeProvider.isNeon;
+          final runProgress = runningProvider.progress;
+
+          // CARREGAR A SESSÃO SUGERIDA
+          final suggestedRun = runningProvider.getSessionForLevel(runProgress?.currentLevel ?? 1);
 
           if (sessions.isEmpty) {
-            return Center(
-              child: Text(
-                'Configure seus treinos na aba "Configuração"',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // --- CARD DE CORRIDA ---
+                NeonCard(
+                  isNeon: isNeon,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.directions_run, color: isNeon ? AppColors.neonGreen : Colors.orange, size: 28),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Treino de Corrida",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isNeon ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      Text(
+                        "Nível ${suggestedRun.level} • ${suggestedRun.description}",
+                        style: TextStyle(fontWeight: FontWeight.bold, color: isNeon ? AppColors.neonPurple : Colors.blue),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Aquecimento: ${suggestedRun.warmupMinutes} min\n"
+                        "Série: ${suggestedRun.repetitions}x (${suggestedRun.runSeconds}s Trote / ${suggestedRun.walkSeconds}s Caminhada)\n"
+                        "Total Est.: ~${(suggestedRun.totalTimeSeconds/60).toStringAsFixed(0)} min",
+                        style: TextStyle(fontSize: 13, height: 1.4, color: isNeon ? Colors.grey[400] : Colors.black87),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.play_circle_filled),
+                          label: const Text("Iniciar Corrida"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isNeon ? AppColors.neonGreen : Colors.orange,
+                            foregroundColor: isNeon ? Colors.black : Colors.white,
+                          ),
+                          onPressed: () {
+                            // Abre o timer de corrida
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ActiveRunningScreen(session: suggestedRun),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    'Configure seus treinos na aba "Configuração"',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ],
             );
           }
 
-          return ListView.builder(
+          return ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: sessions.length,
-            itemBuilder: (context, index) {
-              final session = sessions[index];
-              return _TrainingSessionCard(
-                session: session,
-                trainingProvider: trainingProvider,
-                muscleProvider: muscleProvider,
+            children: [
+              // --- CARD DE CORRIDA (NOVO) ---
+              NeonCard(
                 isNeon: isNeon,
-              );
-            },
+                margin: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.directions_run, color: isNeon ? AppColors.neonGreen : Colors.orange, size: 28),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Treino de Corrida",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isNeon ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    Text(
+                      "Nível ${suggestedRun.level} • ${suggestedRun.description}",
+                      style: TextStyle(fontWeight: FontWeight.bold, color: isNeon ? AppColors.neonPurple : Colors.blue),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Aquecimento: ${suggestedRun.warmupMinutes} min\n"
+                      "Série: ${suggestedRun.repetitions}x (${suggestedRun.runSeconds}s Trote / ${suggestedRun.walkSeconds}s Caminhada)\n"
+                      "Total Est.: ~${(suggestedRun.totalTimeSeconds/60).toStringAsFixed(0)} min",
+                      style: TextStyle(fontSize: 13, height: 1.4, color: isNeon ? Colors.grey[400] : Colors.black87),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.play_circle_filled),
+                        label: const Text("Iniciar Corrida"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isNeon ? AppColors.neonGreen : Colors.orange,
+                          foregroundColor: isNeon ? Colors.black : Colors.white,
+                        ),
+                        onPressed: () {
+                          // Abre o timer de corrida
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActiveRunningScreen(session: suggestedRun),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Título ou Separador Opcional
+              if (sessions.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Text("Musculação", style: Theme.of(context).textTheme.titleMedium),
+                ),
+
+              // Lista de Sessões de Musculação
+              ...sessions.map((session) {
+                return _TrainingSessionCard(
+                  session: session,
+                  trainingProvider: trainingProvider,
+                  muscleProvider: muscleProvider,
+                  isNeon: isNeon,
+                );
+              }).toList(),
+            ],
           );
         },
         ),

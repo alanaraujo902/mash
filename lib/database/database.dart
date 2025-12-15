@@ -199,6 +199,33 @@ class UserGoals extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+// TABELA DE PROGRESSO DO USUÁRIO (Salva onde ele está no plano)
+@DataClassName('RunningProgress')
+class RunningProgresses extends Table {
+  TextColumn get id => text()();
+  IntColumn get currentLevel => integer().withDefault(const Constant(1))(); // Nível de dificuldade (1 a 30)
+  IntColumn get weekDay => integer().withDefault(const Constant(1))(); // Dia 1, 2 ou 3 da semana
+  DateTimeColumn get lastRunDate => dateTime().nullable()();
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// TABELA DE HISTÓRICO DE CORRIDA
+@DataClassName('RunningLog')
+class RunningLogs extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get date => dateTime()();
+  IntColumn get levelCompleted => integer()();
+  IntColumn get durationSeconds => integer()();
+  RealColumn get distanceKm => real().nullable()(); // Opcional, se o user quiser digitar
+  // Feedback: 1 (Muito Fácil) a 5 (Impossível/Falha)
+  IntColumn get feedbackScore => integer()(); 
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   MuscleGroups,
   TrainingSessions,
@@ -213,13 +240,15 @@ class UserGoals extends Table {
   RecoveryHistoryLogs,
   Meals,
   UserGoals,
+  RunningProgresses,
+  RunningLogs,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 13 (metas nutricionais)
+  // Versão atualizada para 14 (sistema de corrida adaptativo)
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration {
@@ -229,6 +258,10 @@ class AppDatabase extends _$AppDatabase {
         // Cria a meta padrão ao instalar
         await into(userGoals).insert(
           UserGoal(id: 'main', caloriesTarget: 2000, carbsTarget: 250, proteinTarget: 150, fatTarget: 70)
+        );
+        // Inicializa progresso de corrida padrão
+        await into(runningProgresses).insert(
+          RunningProgress(id: 'main', currentLevel: 1, weekDay: 1, lastRunDate: null)
         );
       },
       onUpgrade: (Migrator m, int from, int to) async {
@@ -292,6 +325,16 @@ class AppDatabase extends _$AppDatabase {
           // Insere valor padrão para usuários existentes
           await into(userGoals).insert(
             UserGoal(id: 'main', caloriesTarget: 2000, carbsTarget: 250, proteinTarget: 150, fatTarget: 70)
+          );
+        }
+        
+        // Migração v14: Criar tabelas de corrida adaptativa
+        if (from < 14) {
+          await m.createTable(runningProgresses);
+          await m.createTable(runningLogs);
+          // Inicializa para usuário existente
+          await into(runningProgresses).insert(
+            RunningProgress(id: 'main', currentLevel: 1, weekDay: 1, lastRunDate: null)
           );
         }
       },
@@ -645,6 +688,43 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> updateUserGoal(UserGoal goal) {
     return update(userGoals).replace(goal);
+  }
+
+  // MÉTODOS DE ACESSO - CORRIDA
+  Future<RunningProgress?> getRunningProgress() {
+    return (select(runningProgresses)..where((tbl) => tbl.id.equals('main'))).getSingleOrNull();
+  }
+
+  Future<void> updateRunningProgress(int newLevel, int newDay, DateTime? date) async {
+    final existing = await getRunningProgress();
+    if (existing != null) {
+      await (update(runningProgresses)..where((tbl) => tbl.id.equals('main'))).write(
+        RunningProgressesCompanion(
+          currentLevel: Value(newLevel),
+          weekDay: Value(newDay),
+          lastRunDate: Value(date),
+        )
+      );
+    } else {
+      await into(runningProgresses).insert(
+        RunningProgress(
+          id: 'main',
+          currentLevel: newLevel,
+          weekDay: newDay,
+          lastRunDate: date,
+        )
+      );
+    }
+  }
+
+  Future<void> insertRunningLog(RunningLog log) {
+    return into(runningLogs).insert(log);
+  }
+
+  Future<List<RunningLog>> getRunningLogs() {
+    return (select(runningLogs)
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.date, mode: OrderingMode.desc)]))
+      .get();
   }
 
   // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)

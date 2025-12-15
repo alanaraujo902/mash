@@ -5818,6 +5818,760 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
   }
 }
 
+class $RunningProgressesTable extends RunningProgresses
+    with TableInfo<$RunningProgressesTable, RunningProgress> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RunningProgressesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currentLevelMeta = const VerificationMeta(
+    'currentLevel',
+  );
+  @override
+  late final GeneratedColumn<int> currentLevel = GeneratedColumn<int>(
+    'current_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _weekDayMeta = const VerificationMeta(
+    'weekDay',
+  );
+  @override
+  late final GeneratedColumn<int> weekDay = GeneratedColumn<int>(
+    'week_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _lastRunDateMeta = const VerificationMeta(
+    'lastRunDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastRunDate = GeneratedColumn<DateTime>(
+    'last_run_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    currentLevel,
+    weekDay,
+    lastRunDate,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'running_progresses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RunningProgress> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('current_level')) {
+      context.handle(
+        _currentLevelMeta,
+        currentLevel.isAcceptableOrUnknown(
+          data['current_level']!,
+          _currentLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('week_day')) {
+      context.handle(
+        _weekDayMeta,
+        weekDay.isAcceptableOrUnknown(data['week_day']!, _weekDayMeta),
+      );
+    }
+    if (data.containsKey('last_run_date')) {
+      context.handle(
+        _lastRunDateMeta,
+        lastRunDate.isAcceptableOrUnknown(
+          data['last_run_date']!,
+          _lastRunDateMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RunningProgress map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RunningProgress(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      currentLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_level'],
+      )!,
+      weekDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}week_day'],
+      )!,
+      lastRunDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_run_date'],
+      ),
+    );
+  }
+
+  @override
+  $RunningProgressesTable createAlias(String alias) {
+    return $RunningProgressesTable(attachedDatabase, alias);
+  }
+}
+
+class RunningProgress extends DataClass implements Insertable<RunningProgress> {
+  final String id;
+  final int currentLevel;
+  final int weekDay;
+  final DateTime? lastRunDate;
+  const RunningProgress({
+    required this.id,
+    required this.currentLevel,
+    required this.weekDay,
+    this.lastRunDate,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['current_level'] = Variable<int>(currentLevel);
+    map['week_day'] = Variable<int>(weekDay);
+    if (!nullToAbsent || lastRunDate != null) {
+      map['last_run_date'] = Variable<DateTime>(lastRunDate);
+    }
+    return map;
+  }
+
+  RunningProgressesCompanion toCompanion(bool nullToAbsent) {
+    return RunningProgressesCompanion(
+      id: Value(id),
+      currentLevel: Value(currentLevel),
+      weekDay: Value(weekDay),
+      lastRunDate: lastRunDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastRunDate),
+    );
+  }
+
+  factory RunningProgress.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RunningProgress(
+      id: serializer.fromJson<String>(json['id']),
+      currentLevel: serializer.fromJson<int>(json['currentLevel']),
+      weekDay: serializer.fromJson<int>(json['weekDay']),
+      lastRunDate: serializer.fromJson<DateTime?>(json['lastRunDate']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'currentLevel': serializer.toJson<int>(currentLevel),
+      'weekDay': serializer.toJson<int>(weekDay),
+      'lastRunDate': serializer.toJson<DateTime?>(lastRunDate),
+    };
+  }
+
+  RunningProgress copyWith({
+    String? id,
+    int? currentLevel,
+    int? weekDay,
+    Value<DateTime?> lastRunDate = const Value.absent(),
+  }) => RunningProgress(
+    id: id ?? this.id,
+    currentLevel: currentLevel ?? this.currentLevel,
+    weekDay: weekDay ?? this.weekDay,
+    lastRunDate: lastRunDate.present ? lastRunDate.value : this.lastRunDate,
+  );
+  RunningProgress copyWithCompanion(RunningProgressesCompanion data) {
+    return RunningProgress(
+      id: data.id.present ? data.id.value : this.id,
+      currentLevel: data.currentLevel.present
+          ? data.currentLevel.value
+          : this.currentLevel,
+      weekDay: data.weekDay.present ? data.weekDay.value : this.weekDay,
+      lastRunDate: data.lastRunDate.present
+          ? data.lastRunDate.value
+          : this.lastRunDate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunningProgress(')
+          ..write('id: $id, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('weekDay: $weekDay, ')
+          ..write('lastRunDate: $lastRunDate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, currentLevel, weekDay, lastRunDate);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RunningProgress &&
+          other.id == this.id &&
+          other.currentLevel == this.currentLevel &&
+          other.weekDay == this.weekDay &&
+          other.lastRunDate == this.lastRunDate);
+}
+
+class RunningProgressesCompanion extends UpdateCompanion<RunningProgress> {
+  final Value<String> id;
+  final Value<int> currentLevel;
+  final Value<int> weekDay;
+  final Value<DateTime?> lastRunDate;
+  final Value<int> rowid;
+  const RunningProgressesCompanion({
+    this.id = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.weekDay = const Value.absent(),
+    this.lastRunDate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RunningProgressesCompanion.insert({
+    required String id,
+    this.currentLevel = const Value.absent(),
+    this.weekDay = const Value.absent(),
+    this.lastRunDate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<RunningProgress> custom({
+    Expression<String>? id,
+    Expression<int>? currentLevel,
+    Expression<int>? weekDay,
+    Expression<DateTime>? lastRunDate,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currentLevel != null) 'current_level': currentLevel,
+      if (weekDay != null) 'week_day': weekDay,
+      if (lastRunDate != null) 'last_run_date': lastRunDate,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RunningProgressesCompanion copyWith({
+    Value<String>? id,
+    Value<int>? currentLevel,
+    Value<int>? weekDay,
+    Value<DateTime?>? lastRunDate,
+    Value<int>? rowid,
+  }) {
+    return RunningProgressesCompanion(
+      id: id ?? this.id,
+      currentLevel: currentLevel ?? this.currentLevel,
+      weekDay: weekDay ?? this.weekDay,
+      lastRunDate: lastRunDate ?? this.lastRunDate,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (currentLevel.present) {
+      map['current_level'] = Variable<int>(currentLevel.value);
+    }
+    if (weekDay.present) {
+      map['week_day'] = Variable<int>(weekDay.value);
+    }
+    if (lastRunDate.present) {
+      map['last_run_date'] = Variable<DateTime>(lastRunDate.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunningProgressesCompanion(')
+          ..write('id: $id, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('weekDay: $weekDay, ')
+          ..write('lastRunDate: $lastRunDate, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RunningLogsTable extends RunningLogs
+    with TableInfo<$RunningLogsTable, RunningLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RunningLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _levelCompletedMeta = const VerificationMeta(
+    'levelCompleted',
+  );
+  @override
+  late final GeneratedColumn<int> levelCompleted = GeneratedColumn<int>(
+    'level_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _distanceKmMeta = const VerificationMeta(
+    'distanceKm',
+  );
+  @override
+  late final GeneratedColumn<double> distanceKm = GeneratedColumn<double>(
+    'distance_km',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feedbackScoreMeta = const VerificationMeta(
+    'feedbackScore',
+  );
+  @override
+  late final GeneratedColumn<int> feedbackScore = GeneratedColumn<int>(
+    'feedback_score',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    levelCompleted,
+    durationSeconds,
+    distanceKm,
+    feedbackScore,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'running_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RunningLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('level_completed')) {
+      context.handle(
+        _levelCompletedMeta,
+        levelCompleted.isAcceptableOrUnknown(
+          data['level_completed']!,
+          _levelCompletedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_levelCompletedMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationSecondsMeta);
+    }
+    if (data.containsKey('distance_km')) {
+      context.handle(
+        _distanceKmMeta,
+        distanceKm.isAcceptableOrUnknown(data['distance_km']!, _distanceKmMeta),
+      );
+    }
+    if (data.containsKey('feedback_score')) {
+      context.handle(
+        _feedbackScoreMeta,
+        feedbackScore.isAcceptableOrUnknown(
+          data['feedback_score']!,
+          _feedbackScoreMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_feedbackScoreMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RunningLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RunningLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      levelCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level_completed'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      distanceKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}distance_km'],
+      ),
+      feedbackScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}feedback_score'],
+      )!,
+    );
+  }
+
+  @override
+  $RunningLogsTable createAlias(String alias) {
+    return $RunningLogsTable(attachedDatabase, alias);
+  }
+}
+
+class RunningLog extends DataClass implements Insertable<RunningLog> {
+  final String id;
+  final DateTime date;
+  final int levelCompleted;
+  final int durationSeconds;
+  final double? distanceKm;
+  final int feedbackScore;
+  const RunningLog({
+    required this.id,
+    required this.date,
+    required this.levelCompleted,
+    required this.durationSeconds,
+    this.distanceKm,
+    required this.feedbackScore,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['level_completed'] = Variable<int>(levelCompleted);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    if (!nullToAbsent || distanceKm != null) {
+      map['distance_km'] = Variable<double>(distanceKm);
+    }
+    map['feedback_score'] = Variable<int>(feedbackScore);
+    return map;
+  }
+
+  RunningLogsCompanion toCompanion(bool nullToAbsent) {
+    return RunningLogsCompanion(
+      id: Value(id),
+      date: Value(date),
+      levelCompleted: Value(levelCompleted),
+      durationSeconds: Value(durationSeconds),
+      distanceKm: distanceKm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(distanceKm),
+      feedbackScore: Value(feedbackScore),
+    );
+  }
+
+  factory RunningLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RunningLog(
+      id: serializer.fromJson<String>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      levelCompleted: serializer.fromJson<int>(json['levelCompleted']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      distanceKm: serializer.fromJson<double?>(json['distanceKm']),
+      feedbackScore: serializer.fromJson<int>(json['feedbackScore']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'levelCompleted': serializer.toJson<int>(levelCompleted),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'distanceKm': serializer.toJson<double?>(distanceKm),
+      'feedbackScore': serializer.toJson<int>(feedbackScore),
+    };
+  }
+
+  RunningLog copyWith({
+    String? id,
+    DateTime? date,
+    int? levelCompleted,
+    int? durationSeconds,
+    Value<double?> distanceKm = const Value.absent(),
+    int? feedbackScore,
+  }) => RunningLog(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    levelCompleted: levelCompleted ?? this.levelCompleted,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    distanceKm: distanceKm.present ? distanceKm.value : this.distanceKm,
+    feedbackScore: feedbackScore ?? this.feedbackScore,
+  );
+  RunningLog copyWithCompanion(RunningLogsCompanion data) {
+    return RunningLog(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      levelCompleted: data.levelCompleted.present
+          ? data.levelCompleted.value
+          : this.levelCompleted,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      distanceKm: data.distanceKm.present
+          ? data.distanceKm.value
+          : this.distanceKm,
+      feedbackScore: data.feedbackScore.present
+          ? data.feedbackScore.value
+          : this.feedbackScore,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunningLog(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('levelCompleted: $levelCompleted, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('distanceKm: $distanceKm, ')
+          ..write('feedbackScore: $feedbackScore')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    date,
+    levelCompleted,
+    durationSeconds,
+    distanceKm,
+    feedbackScore,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RunningLog &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.levelCompleted == this.levelCompleted &&
+          other.durationSeconds == this.durationSeconds &&
+          other.distanceKm == this.distanceKm &&
+          other.feedbackScore == this.feedbackScore);
+}
+
+class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
+  final Value<String> id;
+  final Value<DateTime> date;
+  final Value<int> levelCompleted;
+  final Value<int> durationSeconds;
+  final Value<double?> distanceKm;
+  final Value<int> feedbackScore;
+  final Value<int> rowid;
+  const RunningLogsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.levelCompleted = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.distanceKm = const Value.absent(),
+    this.feedbackScore = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RunningLogsCompanion.insert({
+    required String id,
+    required DateTime date,
+    required int levelCompleted,
+    required int durationSeconds,
+    this.distanceKm = const Value.absent(),
+    required int feedbackScore,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       date = Value(date),
+       levelCompleted = Value(levelCompleted),
+       durationSeconds = Value(durationSeconds),
+       feedbackScore = Value(feedbackScore);
+  static Insertable<RunningLog> custom({
+    Expression<String>? id,
+    Expression<DateTime>? date,
+    Expression<int>? levelCompleted,
+    Expression<int>? durationSeconds,
+    Expression<double>? distanceKm,
+    Expression<int>? feedbackScore,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (levelCompleted != null) 'level_completed': levelCompleted,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (distanceKm != null) 'distance_km': distanceKm,
+      if (feedbackScore != null) 'feedback_score': feedbackScore,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RunningLogsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? date,
+    Value<int>? levelCompleted,
+    Value<int>? durationSeconds,
+    Value<double?>? distanceKm,
+    Value<int>? feedbackScore,
+    Value<int>? rowid,
+  }) {
+    return RunningLogsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      levelCompleted: levelCompleted ?? this.levelCompleted,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      distanceKm: distanceKm ?? this.distanceKm,
+      feedbackScore: feedbackScore ?? this.feedbackScore,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (levelCompleted.present) {
+      map['level_completed'] = Variable<int>(levelCompleted.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (distanceKm.present) {
+      map['distance_km'] = Variable<double>(distanceKm.value);
+    }
+    if (feedbackScore.present) {
+      map['feedback_score'] = Variable<int>(feedbackScore.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunningLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('levelCompleted: $levelCompleted, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('distanceKm: $distanceKm, ')
+          ..write('feedbackScore: $feedbackScore, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5846,6 +6600,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $RecoveryHistoryLogsTable(this);
   late final $MealsTable meals = $MealsTable(this);
   late final $UserGoalsTable userGoals = $UserGoalsTable(this);
+  late final $RunningProgressesTable runningProgresses =
+      $RunningProgressesTable(this);
+  late final $RunningLogsTable runningLogs = $RunningLogsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5864,6 +6621,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     recoveryHistoryLogs,
     meals,
     userGoals,
+    runningProgresses,
+    runningLogs,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -11492,6 +12251,427 @@ typedef $$UserGoalsTableProcessedTableManager =
       UserGoal,
       PrefetchHooks Function()
     >;
+typedef $$RunningProgressesTableCreateCompanionBuilder =
+    RunningProgressesCompanion Function({
+      required String id,
+      Value<int> currentLevel,
+      Value<int> weekDay,
+      Value<DateTime?> lastRunDate,
+      Value<int> rowid,
+    });
+typedef $$RunningProgressesTableUpdateCompanionBuilder =
+    RunningProgressesCompanion Function({
+      Value<String> id,
+      Value<int> currentLevel,
+      Value<int> weekDay,
+      Value<DateTime?> lastRunDate,
+      Value<int> rowid,
+    });
+
+class $$RunningProgressesTableFilterComposer
+    extends Composer<_$AppDatabase, $RunningProgressesTable> {
+  $$RunningProgressesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekDay => $composableBuilder(
+    column: $table.weekDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastRunDate => $composableBuilder(
+    column: $table.lastRunDate,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RunningProgressesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RunningProgressesTable> {
+  $$RunningProgressesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekDay => $composableBuilder(
+    column: $table.weekDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastRunDate => $composableBuilder(
+    column: $table.lastRunDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RunningProgressesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RunningProgressesTable> {
+  $$RunningProgressesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekDay =>
+      $composableBuilder(column: $table.weekDay, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastRunDate => $composableBuilder(
+    column: $table.lastRunDate,
+    builder: (column) => column,
+  );
+}
+
+class $$RunningProgressesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RunningProgressesTable,
+          RunningProgress,
+          $$RunningProgressesTableFilterComposer,
+          $$RunningProgressesTableOrderingComposer,
+          $$RunningProgressesTableAnnotationComposer,
+          $$RunningProgressesTableCreateCompanionBuilder,
+          $$RunningProgressesTableUpdateCompanionBuilder,
+          (
+            RunningProgress,
+            BaseReferences<
+              _$AppDatabase,
+              $RunningProgressesTable,
+              RunningProgress
+            >,
+          ),
+          RunningProgress,
+          PrefetchHooks Function()
+        > {
+  $$RunningProgressesTableTableManager(
+    _$AppDatabase db,
+    $RunningProgressesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RunningProgressesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RunningProgressesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RunningProgressesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> weekDay = const Value.absent(),
+                Value<DateTime?> lastRunDate = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RunningProgressesCompanion(
+                id: id,
+                currentLevel: currentLevel,
+                weekDay: weekDay,
+                lastRunDate: lastRunDate,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> weekDay = const Value.absent(),
+                Value<DateTime?> lastRunDate = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RunningProgressesCompanion.insert(
+                id: id,
+                currentLevel: currentLevel,
+                weekDay: weekDay,
+                lastRunDate: lastRunDate,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RunningProgressesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RunningProgressesTable,
+      RunningProgress,
+      $$RunningProgressesTableFilterComposer,
+      $$RunningProgressesTableOrderingComposer,
+      $$RunningProgressesTableAnnotationComposer,
+      $$RunningProgressesTableCreateCompanionBuilder,
+      $$RunningProgressesTableUpdateCompanionBuilder,
+      (
+        RunningProgress,
+        BaseReferences<_$AppDatabase, $RunningProgressesTable, RunningProgress>,
+      ),
+      RunningProgress,
+      PrefetchHooks Function()
+    >;
+typedef $$RunningLogsTableCreateCompanionBuilder =
+    RunningLogsCompanion Function({
+      required String id,
+      required DateTime date,
+      required int levelCompleted,
+      required int durationSeconds,
+      Value<double?> distanceKm,
+      required int feedbackScore,
+      Value<int> rowid,
+    });
+typedef $$RunningLogsTableUpdateCompanionBuilder =
+    RunningLogsCompanion Function({
+      Value<String> id,
+      Value<DateTime> date,
+      Value<int> levelCompleted,
+      Value<int> durationSeconds,
+      Value<double?> distanceKm,
+      Value<int> feedbackScore,
+      Value<int> rowid,
+    });
+
+class $$RunningLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $RunningLogsTable> {
+  $$RunningLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get levelCompleted => $composableBuilder(
+    column: $table.levelCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get distanceKm => $composableBuilder(
+    column: $table.distanceKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get feedbackScore => $composableBuilder(
+    column: $table.feedbackScore,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RunningLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RunningLogsTable> {
+  $$RunningLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get levelCompleted => $composableBuilder(
+    column: $table.levelCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get distanceKm => $composableBuilder(
+    column: $table.distanceKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get feedbackScore => $composableBuilder(
+    column: $table.feedbackScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RunningLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RunningLogsTable> {
+  $$RunningLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get levelCompleted => $composableBuilder(
+    column: $table.levelCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get distanceKm => $composableBuilder(
+    column: $table.distanceKm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get feedbackScore => $composableBuilder(
+    column: $table.feedbackScore,
+    builder: (column) => column,
+  );
+}
+
+class $$RunningLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RunningLogsTable,
+          RunningLog,
+          $$RunningLogsTableFilterComposer,
+          $$RunningLogsTableOrderingComposer,
+          $$RunningLogsTableAnnotationComposer,
+          $$RunningLogsTableCreateCompanionBuilder,
+          $$RunningLogsTableUpdateCompanionBuilder,
+          (
+            RunningLog,
+            BaseReferences<_$AppDatabase, $RunningLogsTable, RunningLog>,
+          ),
+          RunningLog,
+          PrefetchHooks Function()
+        > {
+  $$RunningLogsTableTableManager(_$AppDatabase db, $RunningLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RunningLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RunningLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RunningLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> levelCompleted = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<double?> distanceKm = const Value.absent(),
+                Value<int> feedbackScore = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RunningLogsCompanion(
+                id: id,
+                date: date,
+                levelCompleted: levelCompleted,
+                durationSeconds: durationSeconds,
+                distanceKm: distanceKm,
+                feedbackScore: feedbackScore,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime date,
+                required int levelCompleted,
+                required int durationSeconds,
+                Value<double?> distanceKm = const Value.absent(),
+                required int feedbackScore,
+                Value<int> rowid = const Value.absent(),
+              }) => RunningLogsCompanion.insert(
+                id: id,
+                date: date,
+                levelCompleted: levelCompleted,
+                durationSeconds: durationSeconds,
+                distanceKm: distanceKm,
+                feedbackScore: feedbackScore,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RunningLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RunningLogsTable,
+      RunningLog,
+      $$RunningLogsTableFilterComposer,
+      $$RunningLogsTableOrderingComposer,
+      $$RunningLogsTableAnnotationComposer,
+      $$RunningLogsTableCreateCompanionBuilder,
+      $$RunningLogsTableUpdateCompanionBuilder,
+      (
+        RunningLog,
+        BaseReferences<_$AppDatabase, $RunningLogsTable, RunningLog>,
+      ),
+      RunningLog,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11522,4 +12702,8 @@ class $AppDatabaseManager {
       $$MealsTableTableManager(_db, _db.meals);
   $$UserGoalsTableTableManager get userGoals =>
       $$UserGoalsTableTableManager(_db, _db.userGoals);
+  $$RunningProgressesTableTableManager get runningProgresses =>
+      $$RunningProgressesTableTableManager(_db, _db.runningProgresses);
+  $$RunningLogsTableTableManager get runningLogs =>
+      $$RunningLogsTableTableManager(_db, _db.runningLogs);
 }
