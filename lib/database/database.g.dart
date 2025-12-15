@@ -5448,6 +5448,376 @@ class MealsCompanion extends UpdateCompanion<Meal> {
   }
 }
 
+class $UserGoalsTable extends UserGoals
+    with TableInfo<$UserGoalsTable, UserGoal> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserGoalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _caloriesTargetMeta = const VerificationMeta(
+    'caloriesTarget',
+  );
+  @override
+  late final GeneratedColumn<double> caloriesTarget = GeneratedColumn<double>(
+    'calories_target',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2000.0),
+  );
+  static const VerificationMeta _carbsTargetMeta = const VerificationMeta(
+    'carbsTarget',
+  );
+  @override
+  late final GeneratedColumn<double> carbsTarget = GeneratedColumn<double>(
+    'carbs_target',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(250.0),
+  );
+  static const VerificationMeta _proteinTargetMeta = const VerificationMeta(
+    'proteinTarget',
+  );
+  @override
+  late final GeneratedColumn<double> proteinTarget = GeneratedColumn<double>(
+    'protein_target',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(150.0),
+  );
+  static const VerificationMeta _fatTargetMeta = const VerificationMeta(
+    'fatTarget',
+  );
+  @override
+  late final GeneratedColumn<double> fatTarget = GeneratedColumn<double>(
+    'fat_target',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(70.0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    caloriesTarget,
+    carbsTarget,
+    proteinTarget,
+    fatTarget,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_goals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserGoal> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('calories_target')) {
+      context.handle(
+        _caloriesTargetMeta,
+        caloriesTarget.isAcceptableOrUnknown(
+          data['calories_target']!,
+          _caloriesTargetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('carbs_target')) {
+      context.handle(
+        _carbsTargetMeta,
+        carbsTarget.isAcceptableOrUnknown(
+          data['carbs_target']!,
+          _carbsTargetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('protein_target')) {
+      context.handle(
+        _proteinTargetMeta,
+        proteinTarget.isAcceptableOrUnknown(
+          data['protein_target']!,
+          _proteinTargetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fat_target')) {
+      context.handle(
+        _fatTargetMeta,
+        fatTarget.isAcceptableOrUnknown(data['fat_target']!, _fatTargetMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserGoal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserGoal(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      caloriesTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calories_target'],
+      )!,
+      carbsTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}carbs_target'],
+      )!,
+      proteinTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}protein_target'],
+      )!,
+      fatTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fat_target'],
+      )!,
+    );
+  }
+
+  @override
+  $UserGoalsTable createAlias(String alias) {
+    return $UserGoalsTable(attachedDatabase, alias);
+  }
+}
+
+class UserGoal extends DataClass implements Insertable<UserGoal> {
+  final String id;
+  final double caloriesTarget;
+  final double carbsTarget;
+  final double proteinTarget;
+  final double fatTarget;
+  const UserGoal({
+    required this.id,
+    required this.caloriesTarget,
+    required this.carbsTarget,
+    required this.proteinTarget,
+    required this.fatTarget,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['calories_target'] = Variable<double>(caloriesTarget);
+    map['carbs_target'] = Variable<double>(carbsTarget);
+    map['protein_target'] = Variable<double>(proteinTarget);
+    map['fat_target'] = Variable<double>(fatTarget);
+    return map;
+  }
+
+  UserGoalsCompanion toCompanion(bool nullToAbsent) {
+    return UserGoalsCompanion(
+      id: Value(id),
+      caloriesTarget: Value(caloriesTarget),
+      carbsTarget: Value(carbsTarget),
+      proteinTarget: Value(proteinTarget),
+      fatTarget: Value(fatTarget),
+    );
+  }
+
+  factory UserGoal.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserGoal(
+      id: serializer.fromJson<String>(json['id']),
+      caloriesTarget: serializer.fromJson<double>(json['caloriesTarget']),
+      carbsTarget: serializer.fromJson<double>(json['carbsTarget']),
+      proteinTarget: serializer.fromJson<double>(json['proteinTarget']),
+      fatTarget: serializer.fromJson<double>(json['fatTarget']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'caloriesTarget': serializer.toJson<double>(caloriesTarget),
+      'carbsTarget': serializer.toJson<double>(carbsTarget),
+      'proteinTarget': serializer.toJson<double>(proteinTarget),
+      'fatTarget': serializer.toJson<double>(fatTarget),
+    };
+  }
+
+  UserGoal copyWith({
+    String? id,
+    double? caloriesTarget,
+    double? carbsTarget,
+    double? proteinTarget,
+    double? fatTarget,
+  }) => UserGoal(
+    id: id ?? this.id,
+    caloriesTarget: caloriesTarget ?? this.caloriesTarget,
+    carbsTarget: carbsTarget ?? this.carbsTarget,
+    proteinTarget: proteinTarget ?? this.proteinTarget,
+    fatTarget: fatTarget ?? this.fatTarget,
+  );
+  UserGoal copyWithCompanion(UserGoalsCompanion data) {
+    return UserGoal(
+      id: data.id.present ? data.id.value : this.id,
+      caloriesTarget: data.caloriesTarget.present
+          ? data.caloriesTarget.value
+          : this.caloriesTarget,
+      carbsTarget: data.carbsTarget.present
+          ? data.carbsTarget.value
+          : this.carbsTarget,
+      proteinTarget: data.proteinTarget.present
+          ? data.proteinTarget.value
+          : this.proteinTarget,
+      fatTarget: data.fatTarget.present ? data.fatTarget.value : this.fatTarget,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGoal(')
+          ..write('id: $id, ')
+          ..write('caloriesTarget: $caloriesTarget, ')
+          ..write('carbsTarget: $carbsTarget, ')
+          ..write('proteinTarget: $proteinTarget, ')
+          ..write('fatTarget: $fatTarget')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, caloriesTarget, carbsTarget, proteinTarget, fatTarget);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserGoal &&
+          other.id == this.id &&
+          other.caloriesTarget == this.caloriesTarget &&
+          other.carbsTarget == this.carbsTarget &&
+          other.proteinTarget == this.proteinTarget &&
+          other.fatTarget == this.fatTarget);
+}
+
+class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
+  final Value<String> id;
+  final Value<double> caloriesTarget;
+  final Value<double> carbsTarget;
+  final Value<double> proteinTarget;
+  final Value<double> fatTarget;
+  final Value<int> rowid;
+  const UserGoalsCompanion({
+    this.id = const Value.absent(),
+    this.caloriesTarget = const Value.absent(),
+    this.carbsTarget = const Value.absent(),
+    this.proteinTarget = const Value.absent(),
+    this.fatTarget = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserGoalsCompanion.insert({
+    required String id,
+    this.caloriesTarget = const Value.absent(),
+    this.carbsTarget = const Value.absent(),
+    this.proteinTarget = const Value.absent(),
+    this.fatTarget = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<UserGoal> custom({
+    Expression<String>? id,
+    Expression<double>? caloriesTarget,
+    Expression<double>? carbsTarget,
+    Expression<double>? proteinTarget,
+    Expression<double>? fatTarget,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (caloriesTarget != null) 'calories_target': caloriesTarget,
+      if (carbsTarget != null) 'carbs_target': carbsTarget,
+      if (proteinTarget != null) 'protein_target': proteinTarget,
+      if (fatTarget != null) 'fat_target': fatTarget,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserGoalsCompanion copyWith({
+    Value<String>? id,
+    Value<double>? caloriesTarget,
+    Value<double>? carbsTarget,
+    Value<double>? proteinTarget,
+    Value<double>? fatTarget,
+    Value<int>? rowid,
+  }) {
+    return UserGoalsCompanion(
+      id: id ?? this.id,
+      caloriesTarget: caloriesTarget ?? this.caloriesTarget,
+      carbsTarget: carbsTarget ?? this.carbsTarget,
+      proteinTarget: proteinTarget ?? this.proteinTarget,
+      fatTarget: fatTarget ?? this.fatTarget,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (caloriesTarget.present) {
+      map['calories_target'] = Variable<double>(caloriesTarget.value);
+    }
+    if (carbsTarget.present) {
+      map['carbs_target'] = Variable<double>(carbsTarget.value);
+    }
+    if (proteinTarget.present) {
+      map['protein_target'] = Variable<double>(proteinTarget.value);
+    }
+    if (fatTarget.present) {
+      map['fat_target'] = Variable<double>(fatTarget.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGoalsCompanion(')
+          ..write('id: $id, ')
+          ..write('caloriesTarget: $caloriesTarget, ')
+          ..write('carbsTarget: $carbsTarget, ')
+          ..write('proteinTarget: $proteinTarget, ')
+          ..write('fatTarget: $fatTarget, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5475,6 +5845,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecoveryHistoryLogsTable recoveryHistoryLogs =
       $RecoveryHistoryLogsTable(this);
   late final $MealsTable meals = $MealsTable(this);
+  late final $UserGoalsTable userGoals = $UserGoalsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5492,6 +5863,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyContexts,
     recoveryHistoryLogs,
     meals,
+    userGoals,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10920,6 +11292,206 @@ typedef $$MealsTableProcessedTableManager =
       Meal,
       PrefetchHooks Function()
     >;
+typedef $$UserGoalsTableCreateCompanionBuilder =
+    UserGoalsCompanion Function({
+      required String id,
+      Value<double> caloriesTarget,
+      Value<double> carbsTarget,
+      Value<double> proteinTarget,
+      Value<double> fatTarget,
+      Value<int> rowid,
+    });
+typedef $$UserGoalsTableUpdateCompanionBuilder =
+    UserGoalsCompanion Function({
+      Value<String> id,
+      Value<double> caloriesTarget,
+      Value<double> carbsTarget,
+      Value<double> proteinTarget,
+      Value<double> fatTarget,
+      Value<int> rowid,
+    });
+
+class $$UserGoalsTableFilterComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get caloriesTarget => $composableBuilder(
+    column: $table.caloriesTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get carbsTarget => $composableBuilder(
+    column: $table.carbsTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get proteinTarget => $composableBuilder(
+    column: $table.proteinTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get fatTarget => $composableBuilder(
+    column: $table.fatTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserGoalsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get caloriesTarget => $composableBuilder(
+    column: $table.caloriesTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get carbsTarget => $composableBuilder(
+    column: $table.carbsTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get proteinTarget => $composableBuilder(
+    column: $table.proteinTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get fatTarget => $composableBuilder(
+    column: $table.fatTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserGoalsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get caloriesTarget => $composableBuilder(
+    column: $table.caloriesTarget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get carbsTarget => $composableBuilder(
+    column: $table.carbsTarget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get proteinTarget => $composableBuilder(
+    column: $table.proteinTarget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get fatTarget =>
+      $composableBuilder(column: $table.fatTarget, builder: (column) => column);
+}
+
+class $$UserGoalsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserGoalsTable,
+          UserGoal,
+          $$UserGoalsTableFilterComposer,
+          $$UserGoalsTableOrderingComposer,
+          $$UserGoalsTableAnnotationComposer,
+          $$UserGoalsTableCreateCompanionBuilder,
+          $$UserGoalsTableUpdateCompanionBuilder,
+          (UserGoal, BaseReferences<_$AppDatabase, $UserGoalsTable, UserGoal>),
+          UserGoal,
+          PrefetchHooks Function()
+        > {
+  $$UserGoalsTableTableManager(_$AppDatabase db, $UserGoalsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserGoalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserGoalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserGoalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<double> caloriesTarget = const Value.absent(),
+                Value<double> carbsTarget = const Value.absent(),
+                Value<double> proteinTarget = const Value.absent(),
+                Value<double> fatTarget = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserGoalsCompanion(
+                id: id,
+                caloriesTarget: caloriesTarget,
+                carbsTarget: carbsTarget,
+                proteinTarget: proteinTarget,
+                fatTarget: fatTarget,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<double> caloriesTarget = const Value.absent(),
+                Value<double> carbsTarget = const Value.absent(),
+                Value<double> proteinTarget = const Value.absent(),
+                Value<double> fatTarget = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserGoalsCompanion.insert(
+                id: id,
+                caloriesTarget: caloriesTarget,
+                carbsTarget: carbsTarget,
+                proteinTarget: proteinTarget,
+                fatTarget: fatTarget,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserGoalsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserGoalsTable,
+      UserGoal,
+      $$UserGoalsTableFilterComposer,
+      $$UserGoalsTableOrderingComposer,
+      $$UserGoalsTableAnnotationComposer,
+      $$UserGoalsTableCreateCompanionBuilder,
+      $$UserGoalsTableUpdateCompanionBuilder,
+      (UserGoal, BaseReferences<_$AppDatabase, $UserGoalsTable, UserGoal>),
+      UserGoal,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10948,4 +11520,6 @@ class $AppDatabaseManager {
       $$RecoveryHistoryLogsTableTableManager(_db, _db.recoveryHistoryLogs);
   $$MealsTableTableManager get meals =>
       $$MealsTableTableManager(_db, _db.meals);
+  $$UserGoalsTableTableManager get userGoals =>
+      $$UserGoalsTableTableManager(_db, _db.userGoals);
 }

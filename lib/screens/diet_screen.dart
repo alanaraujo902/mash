@@ -22,7 +22,6 @@ class _DietScreenState extends State<DietScreen> {
     );
   }
 
-  // Seletor de Data
   Future<void> _pickDate(BuildContext context) async {
     final provider = context.read<DietProvider>();
     final isNeon = context.read<ThemeProvider>().isNeon;
@@ -59,18 +58,26 @@ class _DietScreenState extends State<DietScreen> {
     final isNeon = context.watch<ThemeProvider>().isNeon;
     final provider = context.watch<DietProvider>();
     final totals = provider.dailyTotals;
+    final goals = provider.userGoal;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dieta & Nutrição'),
         actions: [
+          // DATA
           TextButton.icon(
             onPressed: () => _pickDate(context),
             icon: const Icon(Icons.calendar_today, size: 16),
             label: Text(
-              DateFormat('dd/MM/yyyy').format(provider.selectedDate),
+              DateFormat('dd/MM').format(provider.selectedDate),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
+          ),
+          // CONFIGURAÇÃO DE METAS
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurar Metas',
+            onPressed: () => _showGoalsDialog(context, isNeon, provider),
           ),
         ],
       ),
@@ -84,7 +91,7 @@ class _DietScreenState extends State<DietScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. CARD DE TOTAIS
+              // 1. CARD DE RESUMO COM PROGRESSO
               NeonCard(
                 isNeon: isNeon,
                 padding: const EdgeInsets.all(16),
@@ -98,17 +105,50 @@ class _DietScreenState extends State<DietScreen> {
                         color: isNeon ? AppColors.neonGreen : null,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildMacroInfo('Calorias', '${totals['calories']!.toStringAsFixed(0)} kcal', isNeon),
-                        _buildMacroInfo('Carbo', '${totals['carbs']!.toStringAsFixed(1)} g', isNeon),
-                        _buildMacroInfo('Prot', '${totals['protein']!.toStringAsFixed(1)} g', isNeon),
-                        _buildMacroInfo('Gord', '${totals['totalFat']!.toStringAsFixed(1)} g', isNeon),
-                      ],
+                    const SizedBox(height: 20),
+                    
+                    // CALORIAS (Destaque Maior)
+                    _buildProgressBar(
+                      label: 'Calorias',
+                      current: totals['calories']!,
+                      target: goals?.caloriesTarget ?? 2000,
+                      color: Colors.orange,
+                      isNeon: isNeon,
+                      unit: 'kcal',
                     ),
-                    const Divider(height: 24),
+                    const SizedBox(height: 16),
+
+                    // MACROS (Agora um abaixo do outro)
+                    _buildProgressBar(
+                      label: 'Proteína',
+                      current: totals['protein']!,
+                      target: goals?.proteinTarget ?? 150,
+                      color: Colors.blue,
+                      isNeon: isNeon,
+                      unit: 'g',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildProgressBar(
+                      label: 'Carboidratos',
+                      current: totals['carbs']!,
+                      target: goals?.carbsTarget ?? 250,
+                      color: Colors.green,
+                      isNeon: isNeon,
+                      unit: 'g',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildProgressBar(
+                      label: 'Gordura',
+                      current: totals['totalFat']!,
+                      target: goals?.fatTarget ?? 70,
+                      color: Colors.redAccent,
+                      isNeon: isNeon,
+                      unit: 'g',
+                    ),
+
+                    const Divider(height: 32),
+                    
+                    // MICROS (Texto Simples)
                     Wrap(
                       spacing: 16,
                       runSpacing: 8,
@@ -187,11 +227,74 @@ class _DietScreenState extends State<DietScreen> {
     );
   }
 
-  Widget _buildMacroInfo(String label, String value, bool isNeon) {
+  // WIDGET DE BARRA DE PROGRESSO
+  Widget _buildProgressBar({
+    required String label,
+    required double current,
+    required double target,
+    required Color color,
+    required bool isNeon,
+    required String unit,
+  }) {
+    double progress = target > 0 ? (current / target) : 0.0;
+    if (progress > 1.0) progress = 1.0;
+    final percentage = (progress * 100).toStringAsFixed(0);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isNeon ? Colors.white : Colors.black87)),
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Text(
+                label, 
+                style: TextStyle(
+                  fontSize: 14, 
+                  fontWeight: FontWeight.w600,
+                  color: isNeon ? Colors.white : Colors.black87
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${current.toStringAsFixed(0)} / ${target.toStringAsFixed(0)}$unit',
+              style: TextStyle(
+                fontSize: 14, 
+                fontWeight: FontWeight.bold,
+                color: isNeon ? Colors.white : Colors.black87
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color, width: 1),
+              ),
+              child: Text(
+                '$percentage%',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            backgroundColor: isNeon ? Colors.grey[800] : Colors.grey[200],
+            color: color,
+            minHeight: 10,
+          ),
+        ),
       ],
     );
   }
@@ -211,6 +314,55 @@ class _DietScreenState extends State<DietScreen> {
     );
   }
 
+  // DIALOG DE METAS
+  Future<void> _showGoalsDialog(BuildContext context, bool isNeon, DietProvider provider) async {
+    final goals = provider.userGoal;
+    
+    // Converte os números para String, trocando ponto por vírgula para exibir
+    String format(double val) => val.toString().replaceAll('.', ',');
+
+    final calCtrl = TextEditingController(text: format(goals?.caloriesTarget ?? 2000));
+    final protCtrl = TextEditingController(text: format(goals?.proteinTarget ?? 150));
+    final carbCtrl = TextEditingController(text: format(goals?.carbsTarget ?? 250));
+    final fatCtrl = TextEditingController(text: format(goals?.fatTarget ?? 70));
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isNeon ? AppColors.neonCard : null,
+        title: Text('Definir Metas Diárias', style: TextStyle(color: isNeon ? Colors.white : null)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildInput(calCtrl, 'Calorias (kcal)', isNeon),
+              _buildInput(protCtrl, 'Proteínas (g)', isNeon),
+              _buildInput(carbCtrl, 'Carboidratos (g)', isNeon),
+              _buildInput(fatCtrl, 'Gorduras (g)', isNeon),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () {
+              // Provider já tem o helper parseValue que trata vírgula
+              provider.saveGoals(
+                calories: provider.parseValue(calCtrl.text),
+                protein: provider.parseValue(protCtrl.text),
+                carbs: provider.parseValue(carbCtrl.text),
+                fat: provider.parseValue(fatCtrl.text),
+              );
+              Navigator.pop(ctx);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // DIALOG DE ADICIONAR REFEIÇÃO (Com suporte a vírgula)
   Future<void> _showAddMealDialog(BuildContext context, bool isNeon) async {
     final controllers = {
       'calories': TextEditingController(),
@@ -233,8 +385,8 @@ class _DietScreenState extends State<DietScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildInput(controllers['calories']!, 'Calorias (kcal)', isNeon, autoFocus: true),
-              _buildInput(controllers['carbs']!, 'Carboidratos (g)', isNeon),
               _buildInput(controllers['protein']!, 'Proteínas (g)', isNeon),
+              _buildInput(controllers['carbs']!, 'Carboidratos (g)', isNeon),
               _buildInput(controllers['totalFat']!, 'Gorduras Totais (g)', isNeon),
               _buildInput(controllers['saturatedFat']!, 'Gorduras Saturadas (g)', isNeon),
               _buildInput(controllers['fiber']!, 'Fibras (g)', isNeon),
@@ -250,15 +402,16 @@ class _DietScreenState extends State<DietScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              // Envia as STRINGS para o provider tratar a vírgula
               context.read<DietProvider>().addMeal(
-                calories: double.tryParse(controllers['calories']!.text) ?? 0,
-                carbs: double.tryParse(controllers['carbs']!.text) ?? 0,
-                protein: double.tryParse(controllers['protein']!.text) ?? 0,
-                totalFat: double.tryParse(controllers['totalFat']!.text) ?? 0,
-                saturatedFat: double.tryParse(controllers['saturatedFat']!.text) ?? 0,
-                fiber: double.tryParse(controllers['fiber']!.text) ?? 0,
-                sodium: double.tryParse(controllers['sodium']!.text) ?? 0,
-                calcium: double.tryParse(controllers['calcium']!.text) ?? 0,
+                calories: controllers['calories']!.text,
+                carbs: controllers['carbs']!.text,
+                protein: controllers['protein']!.text,
+                totalFat: controllers['totalFat']!.text,
+                saturatedFat: controllers['saturatedFat']!.text,
+                fiber: controllers['fiber']!.text,
+                sodium: controllers['sodium']!.text,
+                calcium: controllers['calcium']!.text,
               );
               Navigator.pop(ctx);
             },
@@ -275,7 +428,8 @@ class _DietScreenState extends State<DietScreen> {
       child: TextField(
         controller: ctrl,
         autofocus: autoFocus,
-        keyboardType: TextInputType.number,
+        // TextInputType.numberWithOptions(decimal: true) é melhor para teclados numéricos
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         style: TextStyle(color: isNeon ? Colors.white : Colors.black),
         decoration: InputDecoration(
           labelText: label,

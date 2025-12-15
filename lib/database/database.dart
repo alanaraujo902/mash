@@ -186,6 +186,19 @@ class Meals extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+// NOVA TABELA: Metas do Usuário
+@DataClassName('UserGoal')
+class UserGoals extends Table {
+  TextColumn get id => text()(); // Usaremos um ID fixo 'main'
+  RealColumn get caloriesTarget => real().withDefault(const Constant(2000.0))();
+  RealColumn get carbsTarget => real().withDefault(const Constant(250.0))();
+  RealColumn get proteinTarget => real().withDefault(const Constant(150.0))();
+  RealColumn get fatTarget => real().withDefault(const Constant(70.0))();
+  
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   MuscleGroups,
   TrainingSessions,
@@ -199,19 +212,24 @@ class Meals extends Table {
   DailyContexts,
   RecoveryHistoryLogs,
   Meals,
+  UserGoals,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 12 (refeições/dieta)
+  // Versão atualizada para 13 (metas nutricionais)
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        // Cria a meta padrão ao instalar
+        await into(userGoals).insert(
+          UserGoal(id: 'main', caloriesTarget: 2000, carbsTarget: 250, proteinTarget: 150, fatTarget: 70)
+        );
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // Migrações antigas...
@@ -266,6 +284,15 @@ class AppDatabase extends _$AppDatabase {
         // Migração v12: Criar tabela de refeições
         if (from < 12) {
           await m.createTable(meals);
+        }
+        
+        // Migração v13: Criar tabela de metas do usuário
+        if (from < 13) {
+          await m.createTable(userGoals);
+          // Insere valor padrão para usuários existentes
+          await into(userGoals).insert(
+            UserGoal(id: 'main', caloriesTarget: 2000, carbsTarget: 250, proteinTarget: 150, fatTarget: 70)
+          );
         }
       },
     );
@@ -609,6 +636,15 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteMeal(String id) {
     return (delete(meals)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  // MÉTODOS DE ACESSO A METAS
+  Future<UserGoal?> getUserGoal() {
+    return (select(userGoals)..where((tbl) => tbl.id.equals('main'))).getSingleOrNull();
+  }
+
+  Future<void> updateUserGoal(UserGoal goal) {
+    return update(userGoals).replace(goal);
   }
 
   // 3. Buscar todos exercícios que já têm histórico (para preencher o filtro)
