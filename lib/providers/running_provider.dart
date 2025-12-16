@@ -31,6 +31,9 @@ class RunningSessionStructure {
 class RunningProvider extends ChangeNotifier {
   final AppDatabase database;
   RunningProgress? _progress;
+  
+  // NOVO: Armazena uma customização temporária para o treino de hoje
+  RunningSessionStructure? _customSessionOverride;
 
   RunningProvider(this.database) {
     loadProgress();
@@ -43,15 +46,46 @@ class RunningProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- O ALGORITMO DE NÍVEIS ---
-  // Define a progressão lógica baseada na sua descrição
-  RunningSessionStructure getSessionForLevel(int level) {
-    // 5 min aquecimento padrão
-    const warmup = 5;
-    const cooldown = 5; // 5 min desaquecimento padrão
+  // NOVO: Retorna a sessão efetiva (Customizada OU Automática)
+  RunningSessionStructure getEffectiveSession() {
+    // Se o usuário personalizou manualmente, retorna a dele
+    if (_customSessionOverride != null) {
+      return _customSessionOverride!;
+    }
+    // Senão, retorna a do algoritmo baseada no nível do banco
+    return getSessionForLevel(_progress?.currentLevel ?? 1);
+  }
 
-    // Níveis 1-6 (Semanas 1-2): Foco em consistência
-    // Ex: Nível 1 = 1m Corre / 2m Anda
+  // NOVO: Verifica se há uma customização ativa
+  bool get hasCustomSession => _customSessionOverride != null;
+
+  // NOVO: Define uma sessão customizada (apenas para agora)
+  void setCustomSession(RunningSessionStructure session) {
+    _customSessionOverride = session;
+    notifyListeners();
+  }
+
+  // NOVO: Limpa a customização (volta ao automático)
+  void clearCustomSession() {
+    _customSessionOverride = null;
+    notifyListeners();
+  }
+
+  // NOVO: Altera o Nível permanentemente no banco (Override manual do progresso)
+  Future<void> updateLevelManually(int newLevel) async {
+    if (_progress != null) {
+      await database.updateRunningProgress(newLevel, _progress!.weekDay, DateTime.now());
+      await loadProgress();
+      // Ao mudar de nível, limpamos customizações manuais para seguir o novo padrão
+      _customSessionOverride = null; 
+    }
+  }
+
+  // --- O ALGORITMO DE NÍVEIS (Mantido igual) ---
+  RunningSessionStructure getSessionForLevel(int level) {
+    const warmup = 5;
+    const cooldown = 5;
+
     if (level <= 6) {
       return RunningSessionStructure(
         level: level,
@@ -59,45 +93,38 @@ class RunningProvider extends ChangeNotifier {
         warmupMinutes: warmup,
         runSeconds: 60, 
         walkSeconds: 120, 
-        repetitions: 8, // ~29 min totais
-        cooldownMinutes: 0, // Já tem muita caminhada
+        repetitions: 8, 
+        cooldownMinutes: 0,
       );
     }
-    // Níveis 7-12 (Semanas 3-4): Inverte relação
-    // Ex: 2m Corre / 1m Anda
     else if (level <= 12) {
-      // Pequena progressão dentro do bloco
       final bool isHarder = level > 9; 
       return RunningSessionStructure(
         level: level,
         description: "Aumentando o Ritmo",
         warmupMinutes: warmup,
-        runSeconds: isHarder ? 180 : 120, // 2 ou 3 min
-        walkSeconds: isHarder ? 60 : 90,  // 1 ou 1.5 min
+        runSeconds: isHarder ? 180 : 120,
+        walkSeconds: isHarder ? 60 : 90,
         repetitions: isHarder ? 6 : 7,
         cooldownMinutes: cooldown,
       );
     }
-    // Níveis 13-18 (Semanas 5-6): Blocos maiores
-    // Ex: 5-8 min Corre / 2 min Anda
     else if (level <= 18) {
-      final int step = level - 12; // 1 a 6
+      final int step = level - 12;
       return RunningSessionStructure(
         level: level,
         description: "Resistência Intermediária",
         warmupMinutes: warmup,
-        runSeconds: 300 + (step * 30), // Começa em 5m, aumenta 30s por nível
+        runSeconds: 300 + (step * 30),
         walkSeconds: 120,
         repetitions: 3,
         cooldownMinutes: cooldown,
       );
     }
-    // Níveis 19+ (Semanas 7-8): Corrida Contínua
     else {
       final int step = level - 18;
-      final int runTime = 12 + (step * 2); // 14, 16, 18... minutos ou mais blocos
+      final int runTime = 12 + (step * 2);
       
-      // Se for muito avançado, vira corrida direta
       if (runTime >= 20) {
          return RunningSessionStructure(
           level: level,
@@ -122,13 +149,13 @@ class RunningProvider extends ChangeNotifier {
     }
   }
 
-  // --- LÓGICA ADAPTATIVA (FEEDBACK) ---
+  // --- LÓGICA ADAPTATIVA ---
   Future<void> completeSession(int feedbackScore, int durationSeconds) async {
     if (_progress == null) return;
 
     final now = DateTime.now();
     
-    // Salvar Log
+    // Salva o log
     await database.insertRunningLog(RunningLog(
       id: const Uuid().v4(),
       date: now,
@@ -137,33 +164,25 @@ class RunningProvider extends ChangeNotifier {
       feedbackScore: feedbackScore,
     ));
 
-    // Calcular Próximo Nível
+    // Lógica de progressão (Só aplica se estivermos usando o modo automático ou se o usuário quiser)
+    // Vamos assumir que o feedback sempre ajusta o nível base
     int nextLevel = _progress!.currentLevel;
     int nextDay = _progress!.weekDay + 1;
 
-    // Lógica do Feedback (1=Muito Fácil ... 5=Impossível)
     if (feedbackScore == 1) {
-      // Muito fácil: Pula um nível (Acelera progressão)
       nextLevel += 2;
     } else if (feedbackScore == 2) {
-      // Fácil/Moderado: Segue normal
       nextLevel += 1;
-    } else if (feedbackScore == 3) {
-      // Difícil: Repete o nível para consolidar, mas avança o dia
-      // (Mantém nextLevel igual)
     } else if (feedbackScore >= 4) {
-      // Muito Difícil/Falha: Regride um nível se possível
       if (nextLevel > 1) nextLevel -= 1;
     }
 
-    // Resetar dia da semana se passar de 3 (assumindo 3 treinos/semana)
-    if (nextDay > 3) {
-      nextDay = 1;
-    }
+    if (nextDay > 3) nextDay = 1;
 
-    // Atualizar Progresso
     await database.updateRunningProgress(nextLevel, nextDay, now);
     await loadProgress();
+    
+    // Limpa override para o próximo treino ser o sugerido
+    _customSessionOverride = null; 
   }
 }
-
