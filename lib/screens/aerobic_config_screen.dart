@@ -25,12 +25,36 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
   
   bool _isManualMode = false;
 
+  // Controllers para os campos de texto
+  late TextEditingController _warmupController;
+  late TextEditingController _mainController;
+  late TextEditingController _recController;
+  late TextEditingController _repsController;
+  late TextEditingController _cooldownController;
+
   @override
   void initState() {
     super.initState();
+    // Inicializa controllers
+    _warmupController = TextEditingController();
+    _mainController = TextEditingController();
+    _recController = TextEditingController();
+    _repsController = TextEditingController();
+    _cooldownController = TextEditingController();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadValues();
     });
+  }
+
+  @override
+  void dispose() {
+    _warmupController.dispose();
+    _mainController.dispose();
+    _recController.dispose();
+    _repsController.dispose();
+    _cooldownController.dispose();
+    super.dispose();
   }
 
   void _loadValues() {
@@ -44,6 +68,13 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
       _recSec = session.recoveryIntervalSeconds.toDouble();
       _reps = session.repetitions.toDouble();
       _cooldownMin = session.cooldownMinutes.toDouble();
+      
+      // Atualiza controllers
+      _warmupController.text = _warmupMin.toInt().toString();
+      _mainController.text = _mainSec.toInt().toString();
+      _recController.text = _recSec.toInt().toString();
+      _repsController.text = _reps.toInt().toString();
+      _cooldownController.text = _cooldownMin.toInt().toString();
     });
   }
 
@@ -210,17 +241,17 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
                 ),
                 const Divider(),
                 
-                _buildSliderRow("Aquecimento", _warmupMin, 0, 20, " min", (v) { _warmupMin = v; _updateManualSession(); }, isNeon),
-                _buildSliderRow(
+                _buildTextFieldRow("Aquecimento", _warmupMin, " min", _warmupController, (v) { _warmupMin = v; _updateManualSession(); }, isNeon),
+                _buildTextFieldRow(
                   _selectedType == AerobicType.running ? "Correr (Forte)" : "RPM Constante / Forte", 
-                  _mainSec, 0, 1800, " s", (v) { _mainSec = v; _updateManualSession(); }, isNeon, divisions: 60
+                  _mainSec, " s", _mainController, (v) { _mainSec = v; _updateManualSession(); }, isNeon
                 ),
-                _buildSliderRow(
+                _buildTextFieldRow(
                   _selectedType == AerobicType.running ? "Caminhar (Leve)" : "Recuperação / Leve", 
-                  _recSec, 0, 600, " s", (v) { _recSec = v; _updateManualSession(); }, isNeon, divisions: 20
+                  _recSec, " s", _recController, (v) { _recSec = v; _updateManualSession(); }, isNeon
                 ),
-                _buildSliderRow("Repetições", _reps, 1, 20, "x", (v) { _reps = v; _updateManualSession(); }, isNeon, divisions: 19),
-                _buildSliderRow("Washout/Desaq.", _cooldownMin, 0, 20, " min", (v) { _cooldownMin = v; _updateManualSession(); }, isNeon),
+                _buildTextFieldRow("Repetições", _reps, "x", _repsController, (v) { _reps = v; _updateManualSession(); }, isNeon),
+                _buildTextFieldRow("Washout/Desaq.", _cooldownMin, " min", _cooldownController, (v) { _cooldownMin = v; _updateManualSession(); }, isNeon),
 
                 const SizedBox(height: 16),
                 Container(
@@ -248,36 +279,74 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
     );
   }
 
-  Widget _buildSliderRow(
+  Widget _buildTextFieldRow(
     String label, 
     double value, 
-    double min, 
-    double max, 
     String unit, 
+    TextEditingController controller,
     Function(double) onChanged, 
     bool isNeon,
-    {int? divisions}
   ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey)),
-              Text("${value.toInt()}$unit", style: TextStyle(fontWeight: FontWeight.bold, color: isNeon ? Colors.white70 : Colors.black87)),
-            ],
+          Text(
+            label, 
+            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
-          Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            activeColor: isNeon ? AppColors.neonPurple : Colors.blue,
-            onChanged: (val) {
-              setState(() => onChanged(val));
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            style: TextStyle(
+              color: isNeon ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration(
+              suffixText: unit,
+              suffixStyle: TextStyle(
+                color: isNeon ? Colors.white70 : Colors.black87,
+              ),
+              filled: true,
+              fillColor: isNeon ? Colors.white10 : Colors.grey.shade100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isNeon ? AppColors.neonPurple : Colors.grey,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isNeon ? AppColors.neonPurple.withOpacity(0.5) : Colors.grey,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isNeon ? AppColors.neonGreen : Colors.blue,
+                  width: 2,
+                ),
+              ),
+            ),
+            onChanged: (text) {
+              final parsed = double.tryParse(text);
+              if (parsed != null && parsed >= 0) {
+                setState(() => onChanged(parsed));
+              }
+            },
+            onSubmitted: (text) {
+              final parsed = double.tryParse(text);
+              if (parsed != null && parsed >= 0) {
+                setState(() {
+                  onChanged(parsed);
+                  controller.text = parsed.toInt().toString();
+                });
+              } else {
+                controller.text = value.toInt().toString();
+              }
             },
           ),
         ],
