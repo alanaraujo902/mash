@@ -221,6 +221,8 @@ class RunningLogs extends Table {
   RealColumn get distanceKm => real().nullable()(); // Opcional, se o user quiser digitar
   // Feedback: 1 (Muito Fácil) a 5 (Impossível/Falha)
   IntColumn get feedbackScore => integer()(); 
+  // NOVO: 'running' ou 'cycling'
+  TextColumn get type => text().withDefault(const Constant('running'))(); 
   
   @override
   Set<Column> get primaryKey => {id};
@@ -246,9 +248,9 @@ class RunningLogs extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  // Versão atualizada para 14 (sistema de corrida adaptativo)
+  // Versão atualizada para 15 (sistema híbrido: corrida + bike)
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration {
@@ -259,9 +261,12 @@ class AppDatabase extends _$AppDatabase {
         await into(userGoals).insert(
           UserGoal(id: 'main', caloriesTarget: 2000, carbsTarget: 250, proteinTarget: 150, fatTarget: 70)
         );
-        // Inicializa progresso de corrida padrão
+        // Inicializa os dois tipos
         await into(runningProgresses).insert(
-          RunningProgress(id: 'main', currentLevel: 1, weekDay: 1, lastRunDate: null)
+          RunningProgress(id: 'running', currentLevel: 1, weekDay: 1, lastRunDate: null)
+        );
+        await into(runningProgresses).insert(
+          RunningProgress(id: 'cycling', currentLevel: 1, weekDay: 1, lastRunDate: null)
         );
       },
       onUpgrade: (Migrator m, int from, int to) async {
@@ -332,10 +337,49 @@ class AppDatabase extends _$AppDatabase {
         if (from < 14) {
           await m.createTable(runningProgresses);
           await m.createTable(runningLogs);
-          // Inicializa para usuário existente
+          // Migra o usuário antigo para 'running' (o id 'main' vira 'running' na lógica, mas vamos criar novo para garantir)
           await into(runningProgresses).insert(
-            RunningProgress(id: 'main', currentLevel: 1, weekDay: 1, lastRunDate: null)
+            RunningProgress(id: 'running', currentLevel: 1, weekDay: 1, lastRunDate: null)
           );
+        }
+
+        // Migração v15: Adicionar suporte a Bike (cycling)
+        if (from < 15) {
+          // Adiciona coluna type nos logs
+          await m.addColumn(runningLogs, runningLogs.type);
+          
+          // Verifica se existe 'running', se não, cria
+          final existingRunning = await (select(runningProgresses)..where((tbl) => tbl.id.equals('running'))).getSingleOrNull();
+          if (existingRunning == null) {
+            // Se existir um id 'main' antigo, copia os dados para 'running'
+            final oldMain = await (select(runningProgresses)..where((tbl) => tbl.id.equals('main'))).getSingleOrNull();
+            if (oldMain != null) {
+              // Copia os dados do 'main' para 'running'
+              await into(runningProgresses).insert(
+                RunningProgress(
+                  id: 'running',
+                  currentLevel: oldMain.currentLevel,
+                  weekDay: oldMain.weekDay,
+                  lastRunDate: oldMain.lastRunDate,
+                )
+              );
+              // Deleta o 'main' antigo
+              await (delete(runningProgresses)..where((tbl) => tbl.id.equals('main'))).go();
+            } else {
+              // Se não existe nem 'main' nem 'running', cria 'running' do zero
+              await into(runningProgresses).insert(
+                RunningProgress(id: 'running', currentLevel: 1, weekDay: 1, lastRunDate: null)
+              );
+            }
+          }
+          
+          // Cria o progresso da Bike (sempre cria, se não existir)
+          final existingCycling = await (select(runningProgresses)..where((tbl) => tbl.id.equals('cycling'))).getSingleOrNull();
+          if (existingCycling == null) {
+            await into(runningProgresses).insert(
+              RunningProgress(id: 'cycling', currentLevel: 1, weekDay: 1, lastRunDate: null)
+            );
+          }
         }
       },
     );
@@ -690,29 +734,34 @@ class AppDatabase extends _$AppDatabase {
     return update(userGoals).replace(goal);
   }
 
-  // MÉTODOS DE ACESSO - CORRIDA
+  // MÉTODOS DE ACESSO - CORRIDA (Mantidos para compatibilidade)
   Future<RunningProgress?> getRunningProgress() {
-    return (select(runningProgresses)..where((tbl) => tbl.id.equals('main'))).getSingleOrNull();
+    return getProgressByType('running');
   }
 
   Future<void> updateRunningProgress(int newLevel, int newDay, DateTime? date) async {
-    final existing = await getRunningProgress();
-    if (existing != null) {
-      await (update(runningProgresses)..where((tbl) => tbl.id.equals('main'))).write(
+    await updateProgressByType('running', newLevel, newDay, date);
+  }
+
+  // NOVOS MÉTODOS: Suporte a tipos
+  Future<RunningProgress?> getProgressByType(String type) {
+    return (select(runningProgresses)..where((tbl) => tbl.id.equals(type))).getSingleOrNull();
+  }
+
+  Future<void> updateProgressByType(String type, int newLevel, int newDay, DateTime? date) async {
+    // Garante que o registro existe (para casos de migração bugada)
+    final exists = await (select(runningProgresses)..where((tbl) => tbl.id.equals(type))).getSingleOrNull();
+    if (exists == null) {
+       await into(runningProgresses).insert(
+          RunningProgress(id: type, currentLevel: newLevel, weekDay: newDay, lastRunDate: date)
+       );
+    } else {
+      await (update(runningProgresses)..where((tbl) => tbl.id.equals(type))).write(
         RunningProgressesCompanion(
           currentLevel: Value(newLevel),
           weekDay: Value(newDay),
           lastRunDate: Value(date),
-        )
-      );
-    } else {
-      await into(runningProgresses).insert(
-        RunningProgress(
-          id: 'main',
-          currentLevel: newLevel,
-          weekDay: newDay,
-          lastRunDate: date,
-        )
+        ),
       );
     }
   }

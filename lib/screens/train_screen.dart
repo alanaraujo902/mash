@@ -4,14 +4,14 @@ import '../providers/training_session_provider.dart';
 import '../providers/muscle_group_provider.dart';
 import '../providers/workout_timer_provider.dart';
 import '../providers/theme_provider.dart';
-import '../providers/running_provider.dart';
+import '../providers/aerobic_provider.dart';
 import '../providers/daily_context_provider.dart';
 import '../database/database.dart';
 import '../widgets/neon_card.dart';
 import '../widgets/daily_context_dialog.dart';
 import '../utils/app_colors.dart';
 import 'active_workout_screen.dart';
-import 'active_running_screen.dart';
+import 'active_aerobic_screen.dart';
 
 class TrainScreen extends StatelessWidget {
   const TrainScreen({Key? key}) : super(key: key);
@@ -30,7 +30,7 @@ class TrainScreen extends StatelessWidget {
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Musculação'),
-              Tab(text: 'Corrida'),
+              Tab(text: 'Aeróbico'),
             ],
           ),
           actions: [
@@ -128,23 +128,55 @@ class _BodyBuildingTab extends StatelessWidget {
   }
 }
 
-// --- ABA CORRIDA ---
-class _RunningTab extends StatelessWidget {
+// --- ABA AERÓBICO ---
+class _RunningTab extends StatefulWidget {
   const _RunningTab();
 
   @override
+  State<_RunningTab> createState() => _RunningTabState();
+}
+
+class _RunningTabState extends State<_RunningTab> {
+  AerobicType _selectedType = AerobicType.running;
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer2<RunningProvider, ThemeProvider>(
-      builder: (context, runningProvider, themeProvider, _) {
+    return Consumer2<AerobicProvider, ThemeProvider>(
+      builder: (context, aerobicProvider, themeProvider, _) {
         final isNeon = themeProvider.isNeon;
-        final runProgress = runningProvider.progress;
-        
-        // Pega a sessão sugerida (ou o override se configurado na config)
-        final suggestedRun = runningProvider.getEffectiveSession();
+        // Pega sessão do tipo selecionado
+        final suggestedRun = aerobicProvider.getEffectiveSession(_selectedType);
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // TOGGLE DE TIPO
+            Center(
+              child: ToggleButtons(
+                isSelected: [_selectedType == AerobicType.running, _selectedType == AerobicType.cycling],
+                onPressed: (index) {
+                  setState(() {
+                    _selectedType = index == 0 ? AerobicType.running : AerobicType.cycling;
+                  });
+                },
+                borderRadius: BorderRadius.circular(30),
+                fillColor: isNeon ? AppColors.neonPurple.withOpacity(0.2) : Colors.blue.withOpacity(0.1),
+                selectedColor: isNeon ? AppColors.neonGreen : Colors.blue,
+                color: Colors.grey,
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(children: [Icon(Icons.directions_run), SizedBox(width: 8), Text("Corrida")]),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(children: [Icon(Icons.directions_bike), SizedBox(width: 8), Text("Bike")]),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             NeonCard(
               isNeon: isNeon,
               padding: const EdgeInsets.all(16),
@@ -153,16 +185,16 @@ class _RunningTab extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.directions_run, color: isNeon ? AppColors.neonGreen : Colors.orange, size: 32),
+                      Icon(
+                        _selectedType == AerobicType.running ? Icons.directions_run : Icons.directions_bike,
+                        color: isNeon ? AppColors.neonGreen : Colors.orange, 
+                        size: 32
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          "Próximo Treino",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: isNeon ? Colors.white : Colors.black87,
-                          ),
+                          _selectedType == AerobicType.running ? "Treino de Corrida" : "Treino de Bike",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isNeon ? Colors.white : Colors.black87),
                         ),
                       ),
                     ],
@@ -174,7 +206,14 @@ class _RunningTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(Icons.timer, "Aquecimento", "${suggestedRun.warmupMinutes} min", isNeon),
-                  _buildInfoRow(Icons.repeat, "Série (${suggestedRun.repetitions}x)", "${suggestedRun.runSeconds}s Trote / ${suggestedRun.walkSeconds}s Caminhada", isNeon),
+                  _buildInfoRow(
+                    Icons.repeat, 
+                    "Série (${suggestedRun.repetitions}x)", 
+                    _selectedType == AerobicType.running 
+                      ? "${suggestedRun.mainIntervalSeconds}s Trote / ${suggestedRun.recoveryIntervalSeconds}s Caminhada"
+                      : "${suggestedRun.mainIntervalSeconds}s Forte / ${suggestedRun.recoveryIntervalSeconds}s Leve", 
+                    isNeon
+                  ),
                   _buildInfoRow(Icons.timer_off, "Desaquecimento", "${suggestedRun.cooldownMinutes} min", isNeon),
                   const Divider(height: 24),
                   Row(
@@ -192,7 +231,10 @@ class _RunningTab extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.play_circle_filled, size: 28),
-                      label: const Text("INICIAR CORRIDA", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: Text(
+                        _selectedType == AerobicType.running ? "INICIAR CORRIDA" : "INICIAR BIKE",
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isNeon ? AppColors.neonGreen : Colors.orange,
                         foregroundColor: isNeon ? Colors.black : Colors.white,
@@ -213,7 +255,7 @@ class _RunningTab extends StatelessWidget {
     );
   }
 
-  Future<void> _checkContextAndRun(BuildContext context, dynamic session) async {
+  Future<void> _checkContextAndRun(BuildContext context, AerobicSessionStructure session) async {
     final dailyProvider = context.read<DailyContextProvider>();
     final hasContext = await dailyProvider.hasContextForToday();
     bool shouldProceed = true;
@@ -231,7 +273,7 @@ class _RunningTab extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ActiveRunningScreen(session: session),
+          builder: (context) => ActiveAerobicScreen(session: session),
         ),
       );
     }

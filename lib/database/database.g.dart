@@ -6208,6 +6208,16 @@ class $RunningLogsTable extends RunningLogs
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('running'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6216,6 +6226,7 @@ class $RunningLogsTable extends RunningLogs
     durationSeconds,
     distanceKm,
     feedbackScore,
+    type,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6281,6 +6292,12 @@ class $RunningLogsTable extends RunningLogs
     } else if (isInserting) {
       context.missing(_feedbackScoreMeta);
     }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
     return context;
   }
 
@@ -6314,6 +6331,10 @@ class $RunningLogsTable extends RunningLogs
         DriftSqlType.int,
         data['${effectivePrefix}feedback_score'],
       )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
     );
   }
 
@@ -6330,6 +6351,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
   final int durationSeconds;
   final double? distanceKm;
   final int feedbackScore;
+  final String type;
   const RunningLog({
     required this.id,
     required this.date,
@@ -6337,6 +6359,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
     required this.durationSeconds,
     this.distanceKm,
     required this.feedbackScore,
+    required this.type,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6349,6 +6372,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
       map['distance_km'] = Variable<double>(distanceKm);
     }
     map['feedback_score'] = Variable<int>(feedbackScore);
+    map['type'] = Variable<String>(type);
     return map;
   }
 
@@ -6362,6 +6386,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
           ? const Value.absent()
           : Value(distanceKm),
       feedbackScore: Value(feedbackScore),
+      type: Value(type),
     );
   }
 
@@ -6377,6 +6402,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
       durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
       distanceKm: serializer.fromJson<double?>(json['distanceKm']),
       feedbackScore: serializer.fromJson<int>(json['feedbackScore']),
+      type: serializer.fromJson<String>(json['type']),
     );
   }
   @override
@@ -6389,6 +6415,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
       'durationSeconds': serializer.toJson<int>(durationSeconds),
       'distanceKm': serializer.toJson<double?>(distanceKm),
       'feedbackScore': serializer.toJson<int>(feedbackScore),
+      'type': serializer.toJson<String>(type),
     };
   }
 
@@ -6399,6 +6426,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
     int? durationSeconds,
     Value<double?> distanceKm = const Value.absent(),
     int? feedbackScore,
+    String? type,
   }) => RunningLog(
     id: id ?? this.id,
     date: date ?? this.date,
@@ -6406,6 +6434,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
     durationSeconds: durationSeconds ?? this.durationSeconds,
     distanceKm: distanceKm.present ? distanceKm.value : this.distanceKm,
     feedbackScore: feedbackScore ?? this.feedbackScore,
+    type: type ?? this.type,
   );
   RunningLog copyWithCompanion(RunningLogsCompanion data) {
     return RunningLog(
@@ -6423,6 +6452,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
       feedbackScore: data.feedbackScore.present
           ? data.feedbackScore.value
           : this.feedbackScore,
+      type: data.type.present ? data.type.value : this.type,
     );
   }
 
@@ -6434,7 +6464,8 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
           ..write('levelCompleted: $levelCompleted, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('distanceKm: $distanceKm, ')
-          ..write('feedbackScore: $feedbackScore')
+          ..write('feedbackScore: $feedbackScore, ')
+          ..write('type: $type')
           ..write(')'))
         .toString();
   }
@@ -6447,6 +6478,7 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
     durationSeconds,
     distanceKm,
     feedbackScore,
+    type,
   );
   @override
   bool operator ==(Object other) =>
@@ -6457,7 +6489,8 @@ class RunningLog extends DataClass implements Insertable<RunningLog> {
           other.levelCompleted == this.levelCompleted &&
           other.durationSeconds == this.durationSeconds &&
           other.distanceKm == this.distanceKm &&
-          other.feedbackScore == this.feedbackScore);
+          other.feedbackScore == this.feedbackScore &&
+          other.type == this.type);
 }
 
 class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
@@ -6467,6 +6500,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
   final Value<int> durationSeconds;
   final Value<double?> distanceKm;
   final Value<int> feedbackScore;
+  final Value<String> type;
   final Value<int> rowid;
   const RunningLogsCompanion({
     this.id = const Value.absent(),
@@ -6475,6 +6509,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
     this.durationSeconds = const Value.absent(),
     this.distanceKm = const Value.absent(),
     this.feedbackScore = const Value.absent(),
+    this.type = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RunningLogsCompanion.insert({
@@ -6484,6 +6519,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
     required int durationSeconds,
     this.distanceKm = const Value.absent(),
     required int feedbackScore,
+    this.type = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        date = Value(date),
@@ -6497,6 +6533,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
     Expression<int>? durationSeconds,
     Expression<double>? distanceKm,
     Expression<int>? feedbackScore,
+    Expression<String>? type,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -6506,6 +6543,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (distanceKm != null) 'distance_km': distanceKm,
       if (feedbackScore != null) 'feedback_score': feedbackScore,
+      if (type != null) 'type': type,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -6517,6 +6555,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
     Value<int>? durationSeconds,
     Value<double?>? distanceKm,
     Value<int>? feedbackScore,
+    Value<String>? type,
     Value<int>? rowid,
   }) {
     return RunningLogsCompanion(
@@ -6526,6 +6565,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       distanceKm: distanceKm ?? this.distanceKm,
       feedbackScore: feedbackScore ?? this.feedbackScore,
+      type: type ?? this.type,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -6551,6 +6591,9 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
     if (feedbackScore.present) {
       map['feedback_score'] = Variable<int>(feedbackScore.value);
     }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -6566,6 +6609,7 @@ class RunningLogsCompanion extends UpdateCompanion<RunningLog> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('distanceKm: $distanceKm, ')
           ..write('feedbackScore: $feedbackScore, ')
+          ..write('type: $type, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12453,6 +12497,7 @@ typedef $$RunningLogsTableCreateCompanionBuilder =
       required int durationSeconds,
       Value<double?> distanceKm,
       required int feedbackScore,
+      Value<String> type,
       Value<int> rowid,
     });
 typedef $$RunningLogsTableUpdateCompanionBuilder =
@@ -12463,6 +12508,7 @@ typedef $$RunningLogsTableUpdateCompanionBuilder =
       Value<int> durationSeconds,
       Value<double?> distanceKm,
       Value<int> feedbackScore,
+      Value<String> type,
       Value<int> rowid,
     });
 
@@ -12502,6 +12548,11 @@ class $$RunningLogsTableFilterComposer
 
   ColumnFilters<int> get feedbackScore => $composableBuilder(
     column: $table.feedbackScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -12544,6 +12595,11 @@ class $$RunningLogsTableOrderingComposer
     column: $table.feedbackScore,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RunningLogsTableAnnotationComposer
@@ -12580,6 +12636,9 @@ class $$RunningLogsTableAnnotationComposer
     column: $table.feedbackScore,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
 }
 
 class $$RunningLogsTableTableManager
@@ -12619,6 +12678,7 @@ class $$RunningLogsTableTableManager
                 Value<int> durationSeconds = const Value.absent(),
                 Value<double?> distanceKm = const Value.absent(),
                 Value<int> feedbackScore = const Value.absent(),
+                Value<String> type = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RunningLogsCompanion(
                 id: id,
@@ -12627,6 +12687,7 @@ class $$RunningLogsTableTableManager
                 durationSeconds: durationSeconds,
                 distanceKm: distanceKm,
                 feedbackScore: feedbackScore,
+                type: type,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12637,6 +12698,7 @@ class $$RunningLogsTableTableManager
                 required int durationSeconds,
                 Value<double?> distanceKm = const Value.absent(),
                 required int feedbackScore,
+                Value<String> type = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RunningLogsCompanion.insert(
                 id: id,
@@ -12645,6 +12707,7 @@ class $$RunningLogsTableTableManager
                 durationSeconds: durationSeconds,
                 distanceKm: distanceKm,
                 feedbackScore: feedbackScore,
+                type: type,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

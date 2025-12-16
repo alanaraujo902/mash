@@ -8,7 +8,7 @@ import '../utils/app_colors.dart';
 import '../widgets/neon_card.dart';
 import 'create_training_session_screen.dart';
 import 'training_detail_screen.dart';
-import 'running_config_screen.dart'; // Importe a tela de config da corrida
+import 'aerobic_config_screen.dart'; // Importe a tela de config aeróbico
 
 class TrainingSessionsScreen extends StatelessWidget {
   const TrainingSessionsScreen({Key? key}) : super(key: key);
@@ -86,7 +86,7 @@ class TrainingSessionsScreen extends StatelessWidget {
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Musculação'),
-              Tab(text: 'Corrida'),
+              Tab(text: 'Aeróbico'),
             ],
           ),
           actions: [
@@ -100,7 +100,7 @@ class TrainingSessionsScreen extends StatelessWidget {
         body: const TabBarView(
           children: [
             _BodyBuildingConfigTab(), // Lista de Musculação
-            RunningConfigScreen(),    // Tela de Config da Corrida (Embutida)
+            AerobicConfigScreen(),    // Tela de Config Aeróbico (Corrida + Bike)
           ],
         ),
       ),

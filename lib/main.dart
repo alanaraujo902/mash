@@ -10,7 +10,7 @@ import 'providers/workout_timer_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/daily_context_provider.dart';
 import 'providers/diet_provider.dart';
-import 'providers/running_provider.dart';
+import 'providers/aerobic_provider.dart';
 import 'utils/app_colors.dart';
 import 'screens/home_screen.dart';
 
@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
           create: (_) => DietProvider(database),
         ),
         ChangeNotifierProvider(
-          create: (_) => RunningProvider(database),
+          create: (_) => AerobicProvider(database),
         ),
       ],
       child: Consumer<ThemeProvider>(
