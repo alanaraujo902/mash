@@ -162,6 +162,7 @@ class RunningProvider extends ChangeNotifier {
       levelCompleted: _progress!.currentLevel,
       durationSeconds: durationSeconds,
       feedbackScore: feedbackScore,
+      type: 'running', // Tipo obrigatório
     ));
 
     // Lógica de progressão (Só aplica se estivermos usando o modo automático ou se o usuário quiser)
