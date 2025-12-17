@@ -345,8 +345,12 @@ class AppDatabase extends _$AppDatabase {
 
         // Migração v15: Adicionar suporte a Bike (cycling)
         if (from < 15) {
-          // Adiciona coluna type nos logs
-          await m.addColumn(runningLogs, runningLogs.type);
+          // Tenta adicionar a coluna. Se falhar (ex: já existe), apenas segue em frente.
+          try {
+            await m.addColumn(runningLogs, runningLogs.type);
+          } catch (e) {
+            print('Migração v15: Coluna "type" já existia. Ignorando erro e continuando.');
+          }
           
           // Verifica se existe 'running', se não, cria
           final existingRunning = await (select(runningProgresses)..where((tbl) => tbl.id.equals('running'))).getSingleOrNull();

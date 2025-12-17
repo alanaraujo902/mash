@@ -241,17 +241,17 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
                 ),
                 const Divider(),
                 
-                _buildTextFieldRow("Aquecimento", _warmupMin, " min", _warmupController, (v) { _warmupMin = v; _updateManualSession(); }, isNeon),
-                _buildTextFieldRow(
+                _buildInputRow("Aquecimento", _warmupMin, 0, 20, " min", _warmupController, (v) { _warmupMin = v; _updateManualSession(); }, isNeon),
+                _buildInputRow(
                   _selectedType == AerobicType.running ? "Correr (Forte)" : "RPM Constante / Forte", 
-                  _mainSec, " s", _mainController, (v) { _mainSec = v; _updateManualSession(); }, isNeon
+                  _mainSec, 0, 1800, " s", _mainController, (v) { _mainSec = v; _updateManualSession(); }, isNeon, divisions: 60
                 ),
-                _buildTextFieldRow(
+                _buildInputRow(
                   _selectedType == AerobicType.running ? "Caminhar (Leve)" : "Recuperação / Leve", 
-                  _recSec, " s", _recController, (v) { _recSec = v; _updateManualSession(); }, isNeon
+                  _recSec, 0, 600, " s", _recController, (v) { _recSec = v; _updateManualSession(); }, isNeon, divisions: 20
                 ),
-                _buildTextFieldRow("Repetições", _reps, "x", _repsController, (v) { _reps = v; _updateManualSession(); }, isNeon),
-                _buildTextFieldRow("Washout/Desaq.", _cooldownMin, " min", _cooldownController, (v) { _cooldownMin = v; _updateManualSession(); }, isNeon),
+                _buildInputRow("Repetições", _reps, 1, 20, "x", _repsController, (v) { _reps = v; _updateManualSession(); }, isNeon, divisions: 19),
+                _buildInputRow("Washout/Desaq.", _cooldownMin, 0, 20, " min", _cooldownController, (v) { _cooldownMin = v; _updateManualSession(); }, isNeon),
 
                 const SizedBox(height: 16),
                 Container(
@@ -279,75 +279,121 @@ class _AerobicConfigScreenState extends State<AerobicConfigScreen> {
     );
   }
 
-  Widget _buildTextFieldRow(
+  Widget _buildInputRow(
     String label, 
     double value, 
+    double min,
+    double max,
     String unit, 
     TextEditingController controller,
     Function(double) onChanged, 
     bool isNeon,
+    {int? divisions}
   ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label, 
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label, 
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              Text(
+                "${value.toInt()}$unit", 
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  color: isNeon ? Colors.white70 : Colors.black87,
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            style: TextStyle(
-              color: isNeon ? Colors.white : Colors.black87,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              suffixText: unit,
-              suffixStyle: TextStyle(
-                color: isNeon ? Colors.white70 : Colors.black87,
-              ),
-              filled: true,
-              fillColor: isNeon ? Colors.white10 : Colors.grey.shade100,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: isNeon ? AppColors.neonPurple : Colors.grey,
+          // Campo de texto e slider lado a lado
+          Row(
+            children: [
+              // Campo de texto
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: isNeon ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: InputDecoration(
+                    suffixText: unit,
+                    suffixStyle: TextStyle(
+                      color: isNeon ? Colors.white70 : Colors.black87,
+                      fontSize: 12,
+                    ),
+                    filled: true,
+                    fillColor: isNeon ? Colors.white10 : Colors.grey.shade100,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: isNeon ? AppColors.neonPurple : Colors.grey,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: isNeon ? AppColors.neonPurple.withOpacity(0.5) : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: isNeon ? AppColors.neonGreen : Colors.blue,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  onChanged: (text) {
+                    final parsed = double.tryParse(text);
+                    if (parsed != null && parsed >= min && parsed <= max) {
+                      setState(() => onChanged(parsed));
+                    }
+                  },
+                  onSubmitted: (text) {
+                    final parsed = double.tryParse(text);
+                    if (parsed != null && parsed >= min && parsed <= max) {
+                      setState(() {
+                        onChanged(parsed);
+                        controller.text = parsed.toInt().toString();
+                      });
+                    } else {
+                      // Se inválido, restaura o valor anterior
+                      controller.text = value.toInt().toString();
+                    }
+                  },
                 ),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: isNeon ? AppColors.neonPurple.withOpacity(0.5) : Colors.grey,
+              const SizedBox(width: 12),
+              // Slider
+              Expanded(
+                flex: 3,
+                child: Slider(
+                  value: value.clamp(min, max),
+                  min: min,
+                  max: max,
+                  divisions: divisions,
+                  activeColor: isNeon ? AppColors.neonPurple : Colors.blue,
+                  onChanged: (val) {
+                    setState(() {
+                      onChanged(val);
+                      controller.text = val.toInt().toString();
+                    });
+                  },
                 ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: isNeon ? AppColors.neonGreen : Colors.blue,
-                  width: 2,
-                ),
-              ),
-            ),
-            onChanged: (text) {
-              final parsed = double.tryParse(text);
-              if (parsed != null && parsed >= 0) {
-                setState(() => onChanged(parsed));
-              }
-            },
-            onSubmitted: (text) {
-              final parsed = double.tryParse(text);
-              if (parsed != null && parsed >= 0) {
-                setState(() {
-                  onChanged(parsed);
-                  controller.text = parsed.toInt().toString();
-                });
-              } else {
-                controller.text = value.toInt().toString();
-              }
-            },
+            ],
           ),
         ],
       ),
